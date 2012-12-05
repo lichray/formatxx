@@ -39,7 +39,7 @@ template <typename Iter, typename... T>
 using _fmt_put = _format<Iter, T...>;
 
 template <typename CharT, size_t N, typename... T>
-inline auto putf(CharT (&fmt)[N], T const&... t)
+inline auto putf(CharT const (&fmt)[N], T const&... t)
 	-> _fmt_put<CharT const *, T...> {
 	return _fmt_put<CharT const *, T...>(fmt, fmt + N - 1, t...);
 }
