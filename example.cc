@@ -4,7 +4,7 @@
 #include <cstdio>
 
 using std::cout; using std::wcout;
-using stdex::putf;
+using stdex::putf; using stdex::sputf;
 
 int main() {
 	auto f = NAN;
@@ -22,9 +22,9 @@ int main() {
 	printf("%c %d %#.2f\n", 64, 64, 0.1);
 	wcout << putf(L"% 012d|%.f\n", 1234567, f);
 	wprintf(L"% 012d|%.f\n", 1234567, f);
-	wcout << putf(L"%-+012d|%+014p\n", 1234567, &f);
+	wcout << sputf(L"%-+012d|%+014p\n", 1234567, &f);
 	wprintf(L"%-+012d|%+014p\n", 1234567, &f);
-	cout << putf("%12.4s|%14.2s|%.s\n", s.data(), s, s.data());
+	cout << sputf("%12.4s|%14.2s|%.s\n", s.data(), s, s.data());
 	printf("%12.4s|%14.2s|%.s\n", s.data(), s.data(), s.data());
 	return 0;
 }
