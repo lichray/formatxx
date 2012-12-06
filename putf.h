@@ -297,8 +297,8 @@ struct _put_fmt {
 			raw,
 			to_unsigned,
 			to_char,
-			align_sign,
 		} sp = spec::none;
+		bool align_sign = false;
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -310,7 +310,7 @@ struct _put_fmt {
 			break;
 		case ' ':
 			if (!(fl & os::showpos))
-				sp = spec::align_sign;
+				align_sign = true;
 			break;
 		case '#':
 			fl |= os::showbase | os::showpoint;
@@ -399,7 +399,6 @@ struct _put_fmt {
 		case 's': case 'S':
 			if (no_precision)
 				pad.precision_ = -1;
-			sp = spec::none;
 			break;
 		case 'c': case 'C':
 			sp = spec::to_char;
@@ -416,9 +415,11 @@ struct _put_fmt {
 		case spec::raw:
 			return _put_fmt<I, N>::apply(out.put(
 				    out.widen('%')), t);
-		case spec::none:
-			return _put_fmt<I + 1, N>::apply(_output(out,
-				    get<I>(t)).with(fl, pad), t);
+		case spec::none: {
+			auto v = _output(out, get<I>(t));
+			return _put_fmt<I + 1, N>::apply(align_sign ?
+			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
+		}
 		case spec::to_unsigned:
 			return _put_fmt<I + 1, N>::apply(_output(out,
 				    _to_unsigned(get<I>(t))).with(fl, pad), t);
@@ -426,9 +427,6 @@ struct _put_fmt {
 			return _put_fmt<I + 1, N>::apply(_output(out,
 				    _to_char<Traits>(get<I>(t))).with(
 				    fl, pad), t);
-		case spec::align_sign:
-			return _put_fmt<I + 1, N>::apply(_output(out,
-				    get<I>(t)).with_aligned_sign(fl, pad), t);
 		}
 		abort(); /* shut up gcc */
 	}
