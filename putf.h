@@ -363,11 +363,11 @@ struct _put_fmt {
 			fl |= os::uppercase;
 		case 'x':
 			fl |= os::hex;
-			sp = spec::none;
+			sp = spec::to_unsigned;
 			break;
 		case 'o':
 			fl |= os::oct;
-			sp = spec::none;
+			sp = spec::to_unsigned;
 			break;
 		case 'E':
 			fl |= os::uppercase;
