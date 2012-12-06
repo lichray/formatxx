@@ -242,19 +242,16 @@ private:
 		    t_.substr(0, pad.precision_) : t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad, identity<char *>) {
+	Stream& _with(FlagT fl, PadT pad,
+	    identity<typename Stream::char_type *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad, identity<wchar_t *>) {
+	Stream& _with(FlagT fl, PadT pad, identity<signed char *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad, identity<char16_t *>) {
-		return _output_chars__(fl, pad, t_);
-	}
-
-	Stream& _with(FlagT fl, PadT pad, identity<char32_t *>) {
+	Stream& _with(FlagT fl, PadT pad, identity<unsigned char *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
@@ -266,7 +263,7 @@ private:
 			++n;
 		if (*i != 0)
 			return _output__(fl, pad,
-			    std::basic_string<_CharT>(t, n));
+			    std::basic_string<_CharT>(t, n).data());
 		return _output__(fl, pad, t);
 	}
 
