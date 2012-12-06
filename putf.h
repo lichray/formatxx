@@ -332,10 +332,12 @@ struct _put_fmt {
 		if (isdigit(*b, out.getloc()))
 			out.width(_parse_int(b, end(t), fac));
 
-		// precision defaults to zero
+		// precision defaults to zero with a single '.'
+		bool no_precision = true;
 		if (*b == out.widen('.')) {
 			++b;
 			pad.precision_ = _parse_int(b, end(t), fac);
+			no_precision = false;
 		}
 
 		// ignore all length modifiers
@@ -395,6 +397,8 @@ struct _put_fmt {
 		case 'i':	/* basefield == 0 */
 			break;
 		case 's': case 'S':
+			if (no_precision)
+				pad.precision_ = -1;
 			sp = spec::none;
 			break;
 		case 'c': case 'C':
