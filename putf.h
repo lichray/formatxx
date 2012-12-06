@@ -101,6 +101,24 @@ inline auto _to_char(T t)
 	return static_cast<typename _make_char_fallback<Traits, T>::type>(t);
 }
 
+template <typename Traits, typename T, typename Enable = void>
+struct _make_int_fallback {
+	typedef T type;
+};
+
+template <typename Traits, typename T>
+struct _make_int_fallback<Traits, T,
+	typename std::enable_if<std::is_same<T,
+	typename Traits::char_type>::value>::type> {
+	typedef typename Traits::int_type type;
+};
+
+template <typename Traits, typename T>
+inline auto _to_int(T t)
+	-> typename _make_int_fallback<Traits, T>::type {
+	return static_cast<typename _make_int_fallback<Traits, T>::type>(t);
+}
+
 template <typename Iter, typename Facet>
 int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 	int n = 0;
