@@ -28,7 +28,6 @@
 
 #include "__format_base.h"
 #include <algorithm>
-#include <cassert>
 #include <ios>
 #include <locale>
 #include <sstream>
@@ -377,12 +376,8 @@ struct _put_fmt {
 		}
 
 		// type-safe conversions are considered
-		typedef typename std::remove_reference<
-			decltype(get<I>(t))>::type TypeI;
-
 		switch (out.narrow(*b, 0)) {
 		case 'p':
-			assert(std::is_pointer<TypeI>::value);
 			break;
 		case 'X':
 			fl |= os::uppercase;
@@ -414,7 +409,6 @@ struct _put_fmt {
 			fl |= os::fixed | os::scientific;
 			break;
 		case 'u':
-			assert(std::is_integral<TypeI>::value);
 			fl |= os::dec;
 			sp = spec::to_unsigned;
 			break;
