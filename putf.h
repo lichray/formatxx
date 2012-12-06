@@ -219,6 +219,7 @@ public:
 
 		// simulate `out_'
 		dummy_out.width(out_.width(0));
+		dummy_out.imbue(out_.getloc());
 		_output(dummy_out, t_).with(fl, pad);
 		auto s = dummy_out.str();
 		auto i = s.find(out_.widen('+'));
