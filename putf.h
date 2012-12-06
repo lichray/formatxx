@@ -71,6 +71,11 @@ struct _make_unsigned_fallback {
 	typedef T type;
 };
 
+template <>
+struct _make_unsigned_fallback<bool, void> {
+	typedef bool type;
+};
+
 template <typename T>
 struct _make_unsigned_fallback<T,
 	typename std::enable_if<std::is_integral<T>::value>::type> {
@@ -409,11 +414,11 @@ struct _put_fmt {
 			break;
 		case 'u':
 			assert(std::is_integral<TypeI>::value);
+			fl |= os::dec;
 			sp = spec::to_unsigned;
+			break;
 		case 'd':
 			fl |= os::dec;
-			sp = spec::to_int;
-			break;
 		case 'i':	/* basefield == 0 */
 			sp = spec::to_int;
 			break;
