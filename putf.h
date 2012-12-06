@@ -383,6 +383,7 @@ struct _put_fmt {
 		switch (out.narrow(*b, 0)) {
 		case 'p':
 			assert(std::is_pointer<TypeI>::value);
+			break;
 		case 'X':
 			fl |= os::uppercase;
 		case 'x':
