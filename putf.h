@@ -315,6 +315,7 @@ struct _put_fmt {
 			raw,
 			to_unsigned,
 			to_char,
+			to_int,
 		} sp = spec::none;
 		bool align_sign = false;
 
@@ -411,8 +412,10 @@ struct _put_fmt {
 			sp = spec::to_unsigned;
 		case 'd':
 			fl |= os::dec;
+			sp = spec::to_int;
 			break;
 		case 'i':	/* basefield == 0 */
+			sp = spec::to_int;
 			break;
 		case 's': case 'S':
 			if (no_precision)
@@ -435,6 +438,11 @@ struct _put_fmt {
 				    out.widen('%')), t);
 		case spec::none: {
 			auto v = _output(out, get<I>(t));
+			return _put_fmt<I + 1, N>::apply(align_sign ?
+			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
+		}
+		case spec::to_int: {
+			auto v = _output(out, _to_int<Traits>(get<I>(t)));
 			return _put_fmt<I + 1, N>::apply(align_sign ?
 			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
 		}
