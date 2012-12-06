@@ -199,7 +199,17 @@ public:
 		return _with(fl, pad, identity<RealT>());
 	}
 
-	Stream& with_aligned_sign(FlagT fl, PadT pad) {
+	template <typename _U = RealT>
+	auto with_aligned_sign(FlagT fl, PadT pad)
+		-> typename std::enable_if<
+		!std::is_arithmetic<_U>::value, Stream&>::type {
+		return _with(fl, pad, identity<RealT>());
+	}
+
+	template <typename _U = RealT>
+	auto with_aligned_sign(FlagT fl, PadT pad)
+		-> typename std::enable_if<
+		std::is_arithmetic<_U>::value, Stream&>::type {
 		using os = std::basic_ostringstream<
 			decltype(out_.fill()),
 			typename Stream::traits_type>;
