@@ -92,10 +92,8 @@ struct _make_char_fallback {
 	typedef T type;
 };
 
-template <typename Traits, typename T>
-struct _make_char_fallback<Traits, T,
-	typename std::enable_if<std::is_same<T,
-	typename Traits::int_type>::value>::type> {
+template <typename Traits>
+struct _make_char_fallback<Traits, typename Traits::int_type> {
 	typedef typename Traits::char_type type;
 };
 
@@ -110,10 +108,8 @@ struct _make_int_fallback {
 	typedef T type;
 };
 
-template <typename Traits, typename T>
-struct _make_int_fallback<Traits, T,
-	typename std::enable_if<std::is_same<T,
-	typename Traits::char_type>::value>::type> {
+template <typename Traits>
+struct _make_int_fallback<Traits, typename Traits::char_type> {
 	typedef typename Traits::int_type type;
 };
 
