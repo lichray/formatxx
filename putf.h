@@ -186,6 +186,7 @@ class _outputter {
 	T const& t_;
 
 public:
+	typedef typename Stream::char_type	char_type;
 	typedef decltype(out_.flags())		fmtflags;
 	typedef _padding<decltype(out_.fill())>	padding;
 
@@ -207,8 +208,7 @@ public:
 		-> typename std::enable_if<
 		std::is_arithmetic<_U>::value, Stream&>::type {
 		using os = std::basic_ostringstream<
-			decltype(out_.fill()),
-			typename Stream::traits_type>;
+			char_type, typename Stream::traits_type>;
 
 		os dummy_out;
 		fl |= os::showpos;
@@ -238,8 +238,7 @@ private:
 		    t_.substr(0, pad.precision_) : t_);
 	}
 
-	Stream& _with(fmtflags fl, padding pad,
-	    identity<typename Stream::char_type *>) {
+	Stream& _with(fmtflags fl, padding pad, identity<char_type *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
