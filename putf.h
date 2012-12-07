@@ -66,9 +66,7 @@ inline auto sputf(std::basic_string<CharT, Traits> const& fmt, T const&... t)
 }
 
 template <typename T, typename Enable = void>
-struct _make_unsigned_fallback {
-	typedef T type;
-};
+struct _make_unsigned_fallback;
 
 template <>
 struct _make_unsigned_fallback<bool> {
@@ -82,9 +80,15 @@ struct _make_unsigned_fallback<T,
 };
 
 template <typename T>
+inline T const& _to_unsigned(T const& t,
+    typename std::enable_if<!std::is_integral<T>::value>::type* = 0) {
+	return t;
+}
+
+template <typename T>
 inline auto _to_unsigned(T t)
 	-> typename _make_unsigned_fallback<T>::type {
-	return static_cast<typename _make_unsigned_fallback<T>::type>(t);
+	return t;
 }
 
 template <typename Traits, typename T>
