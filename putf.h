@@ -87,20 +87,19 @@ inline auto _to_unsigned(T t)
 	return static_cast<typename _make_unsigned_fallback<T>::type>(t);
 }
 
-template <typename Traits, typename T, typename Enable = void>
-struct _make_char_fallback {
-	typedef T type;
-};
-
-template <typename Traits>
-struct _make_char_fallback<Traits, typename Traits::int_type> {
-	typedef typename Traits::char_type type;
-};
+template <typename Traits, typename T>
+inline T const& _to_char(T const& t,
+    typename std::enable_if<!std::is_same<
+    typename Traits::int_type, T>::value>::type* = 0) {
+	return t;
+}
 
 template <typename Traits, typename T>
-inline auto _to_char(T t)
-	-> typename _make_char_fallback<Traits, T>::type {
-	return static_cast<typename _make_char_fallback<Traits, T>::type>(t);
+inline auto _to_char(T t,
+    typename std::enable_if<std::is_same<
+    typename Traits::int_type, T>::value>::type* = 0)
+	-> typename Traits::char_type {
+	return t;
 }
 
 template <typename Traits, typename T>
