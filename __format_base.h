@@ -36,7 +36,14 @@ template <typename T>
 using identity = std::common_type<T>;
 
 template <typename T, typename CharT>
-struct _accept_narrow;
+struct _accept_narrow {
+	typedef void no;
+};
+
+template <>
+struct _accept_narrow<char, char> {
+	typedef void no;
+};
 
 template <typename T>
 struct _accept_narrow<T, char> {
