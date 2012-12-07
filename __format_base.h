@@ -35,6 +35,27 @@ namespace stdex {
 template <typename T>
 using identity = std::common_type<T>;
 
+template <typename T, typename CharT>
+struct _accept_narrow;
+
+template <typename T>
+struct _accept_narrow<T, char> {
+	typedef char		char_type;
+	typedef int		int_type;
+};
+
+template <>
+struct _accept_narrow<char, signed char> {
+	typedef signed char	char_type;
+	typedef int		int_type;
+};
+
+template <>
+struct _accept_narrow<char, unsigned char> {
+	typedef unsigned char	char_type;
+	typedef int		int_type;
+};
+
 template <typename Iter, typename... T>
 struct _format {
 	_format(Iter const& it1, Iter const& it2, T const&... t) :
