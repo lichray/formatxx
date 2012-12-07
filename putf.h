@@ -242,11 +242,9 @@ private:
 		return _output_chars__(fl, pad, t_);
 	}
 
-	Stream& _with(fmtflags fl, padding pad, identity<signed char *>) {
-		return _output_chars__(fl, pad, t_);
-	}
-
-	Stream& _with(fmtflags fl, padding pad, identity<unsigned char *>) {
+	template <typename CharT>
+	Stream& _with(fmtflags fl, padding pad, identity<CharT *>,
+	    typename _accept_narrow<char_type, CharT>::char_type* = 0) {
 		return _output_chars__(fl, pad, t_);
 	}
 
