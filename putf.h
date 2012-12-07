@@ -458,6 +458,8 @@ struct _put_fmt {
 		}
 		case spec::to_unsigned:
 			return _put_fmt<I + 1, N>::apply(_output(out,
+				    fl & os::dec ?
+				    _to_unsigned(_to_int<Traits>(get<I>(t))) :
 				    _to_unsigned(get<I>(t))).with(fl, pad), t);
 		case spec::to_char:
 			return _put_fmt<I + 1, N>::apply(_output(out,
