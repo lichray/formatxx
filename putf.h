@@ -186,24 +186,24 @@ class _outputter {
 	T const& t_;
 
 public:
-	typedef decltype(out_.flags())		FlagT;
-	typedef _padding<decltype(out_.fill())>	PadT;
+	typedef decltype(out_.flags())		fmtflags;
+	typedef _padding<decltype(out_.fill())>	padding;
 
 	_outputter(Stream& out, T const& t) : out_(out), t_(t) {}
 
-	Stream& with(FlagT fl, PadT pad) {
+	Stream& with(fmtflags fl, padding pad) {
 		return _with(fl, pad, identity<RealT>());
 	}
 
 	template <typename _U = RealT>
-	auto with_aligned_sign(FlagT fl, PadT pad)
+	auto with_aligned_sign(fmtflags fl, padding pad)
 		-> typename std::enable_if<
 		!std::is_arithmetic<_U>::value, Stream&>::type {
 		return _with(fl, pad, identity<RealT>());
 	}
 
 	template <typename _U = RealT>
-	auto with_aligned_sign(FlagT fl, PadT pad)
+	auto with_aligned_sign(fmtflags fl, padding pad)
 		-> typename std::enable_if<
 		std::is_arithmetic<_U>::value, Stream&>::type {
 		using os = std::basic_ostringstream<
@@ -227,32 +227,32 @@ public:
 
 private:
 	template <typename _T>
-	Stream& _with(FlagT fl, PadT pad, identity<_T>) {
+	Stream& _with(fmtflags fl, padding pad, identity<_T>) {
 		return _output__(fl, pad, t_);
 	}
 
 	template <typename _CharT, typename _Traits>
-	Stream& _with(FlagT fl, PadT pad,
+	Stream& _with(fmtflags fl, padding pad,
 	    identity<std::basic_string<_CharT, _Traits>>) {
 		return _output__(fl, pad, pad.precision_ < t_.size() ?
 		    t_.substr(0, pad.precision_) : t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad,
+	Stream& _with(fmtflags fl, padding pad,
 	    identity<typename Stream::char_type *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad, identity<signed char *>) {
+	Stream& _with(fmtflags fl, padding pad, identity<signed char *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
-	Stream& _with(FlagT fl, PadT pad, identity<unsigned char *>) {
+	Stream& _with(fmtflags fl, padding pad, identity<unsigned char *>) {
 		return _output_chars__(fl, pad, t_);
 	}
 
 	template <typename _CharT>
-	Stream& _output_chars__(FlagT fl, PadT pad, _CharT const *t) {
+	Stream& _output_chars__(fmtflags fl, padding pad, _CharT const *t) {
 		size_t n = 0;
 		auto i = t;
 		for (; *i and n < pad.precision_; ++i)
@@ -264,7 +264,7 @@ private:
 	}
 
 	template <typename _T>
-	Stream& _output__(FlagT fl, PadT pad, _T const& t) {
+	Stream& _output__(fmtflags fl, padding pad, _T const& t) {
 		_padding_guard<Stream> _(out_, pad);
 		out_.flags(fl);
 		out_ << t;
