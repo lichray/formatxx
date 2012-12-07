@@ -71,7 +71,7 @@ struct _make_unsigned_fallback {
 };
 
 template <>
-struct _make_unsigned_fallback<bool, void> {
+struct _make_unsigned_fallback<bool> {
 	typedef bool type;
 };
 
