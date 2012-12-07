@@ -108,9 +108,9 @@ inline auto _to_char(T t,
 
 template <typename Traits, typename T>
 inline T const& _to_int(T const& t,
-    typename _accept_narrow<typename Traits::char_type, T>::no* = 0,
     typename std::enable_if<!std::is_same<
-    typename Traits::char_type, T>::value>::type* = 0) {
+    typename Traits::char_type, T>::value and
+    not _accept_narrow<typename Traits::char_type, T>::value>::type* = 0) {
 	return t;
 }
 
@@ -199,6 +199,7 @@ class _outputter {
 
 public:
 	typedef typename Stream::char_type	char_type;
+	typedef typename Stream::traits_type	traits_type;
 	typedef decltype(out_.flags())		fmtflags;
 	typedef _padding<decltype(out_.fill())>	padding;
 
@@ -219,8 +220,7 @@ public:
 	auto with_aligned_sign(fmtflags fl, padding pad)
 		-> typename std::enable_if<
 		std::is_arithmetic<_U>::value, Stream&>::type {
-		using os = std::basic_ostringstream<
-			char_type, typename Stream::traits_type>;
+		using os = std::basic_ostringstream<char_type, traits_type>;
 
 		os dummy_out;
 		fl |= os::showpos;
@@ -239,7 +239,20 @@ public:
 
 private:
 	template <typename _T>
-	Stream& _with(fmtflags fl, padding pad, identity<_T>) {
+	Stream& _with(fmtflags fl, padding pad, identity<_T>,
+	    typename std::enable_if<!std::is_integral<_T>::value or
+	    _accept_narrow<traits_type, _T>::value>::type* = 0) {
+		return _output__(fl, pad, t_);
+	}
+
+	template <typename _T>
+	Stream& _with(fmtflags fl, padding pad, identity<_T>,
+	    typename std::enable_if<std::is_integral<_T>::value and
+	    not _accept_narrow<traits_type, _T>::value>::type* = 0) {
+		return _output__(fl, pad, t_);
+	}
+
+	Stream& _with(fmtflags fl, padding pad, identity<char_type>) {
 		return _output__(fl, pad, t_);
 	}
 

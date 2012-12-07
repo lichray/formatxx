@@ -36,29 +36,25 @@ template <typename T>
 using identity = std::common_type<T>;
 
 template <typename T, typename CharT>
-struct _accept_narrow {
-	typedef void no;
-};
+struct _accept_narrow : std::false_type {};
 
 template <>
-struct _accept_narrow<char, char> {
-	typedef void no;
-};
+struct _accept_narrow<char, char> : std::false_type {};
 
 template <typename T>
-struct _accept_narrow<T, char> {
+struct _accept_narrow<T, char> : std::true_type {
 	typedef char		char_type;
 	typedef int		int_type;
 };
 
 template <>
-struct _accept_narrow<char, signed char> {
+struct _accept_narrow<char, signed char> : std::true_type {
 	typedef signed char	char_type;
 	typedef int		int_type;
 };
 
 template <>
-struct _accept_narrow<char, unsigned char> {
+struct _accept_narrow<char, unsigned char> : std::true_type {
 	typedef unsigned char	char_type;
 	typedef int		int_type;
 };
