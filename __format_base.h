@@ -110,6 +110,18 @@ private:
 	decltype(stream_.width())	width_;
 };
 
+template <int Base, typename Int>
+int _lexical_width(Int i) {
+	if (i == 0)
+		return 1;
+	int n = 0;
+	while (i != 0) {
+		i /= Base;
+		++n;
+	}
+	return n;
+}
+
 }
 
 #endif
