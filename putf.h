@@ -249,7 +249,7 @@ private:
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
 	    typename std::enable_if<std::is_integral<_T>::value and
 	    not _accept_narrow<traits_type, _T>::value>::type* = 0) {
-		return _output__(fl, pad, t_);
+		return _output_int__(fl, pad, t_);
 	}
 
 	Stream& _with(fmtflags fl, padding pad, identity<char_type>) {
@@ -271,6 +271,32 @@ private:
 	Stream& _with(fmtflags fl, padding pad, identity<_CharT *>,
 	    typename _accept_narrow<char_type, _CharT>::char_type* = 0) {
 		return _output_chars__(fl, pad, t_);
+	}
+
+	template <typename _Int>
+	Stream& _output_int__(fmtflags fl, padding pad, _Int i) {
+		using os = std::basic_ostringstream<char_type, traits_type>;
+
+		if (pad.precision_ == 0 and i == 0)
+			return _output__(fl, pad, "");
+		if (pad.precision_ <= 1 )
+			return _output__(fl, pad, t_);
+
+		int w = fl & os::hex ? _lexical_width<16>(i) :
+			fl & os::oct ? _lexical_width<8>(i) +
+			!!(fl & os::showbase) :
+			_lexical_width<10>(i);
+		if (pad.precision_ <= w)
+			return _output__(fl, pad, t_);
+
+		os dummy_out;
+
+		// print without width
+		dummy_out.imbue(out_.getloc());
+		_output(dummy_out, t_)._output__(fl, pad, t_);
+		auto s = dummy_out.str();
+		s.insert(s.size() - w, pad.precision_ - w, out_.widen('0'));
+		return _output__(fl, pad, s);
 	}
 
 	template <typename _CharT>
@@ -410,10 +436,14 @@ struct _put_fmt {
 		case 'x':
 			fl |= os::hex;
 			sp = spec::to_unsigned;
+			if (no_precision)
+				pad.precision_ = -1;
 			break;
 		case 'o':
 			fl |= os::oct;
 			sp = spec::to_unsigned;
+			if (no_precision)
+				pad.precision_ = -1;
 			break;
 		case 'E':
 			fl |= os::uppercase;
@@ -437,11 +467,15 @@ struct _put_fmt {
 		case 'u':
 			fl |= os::dec;
 			sp = spec::to_unsigned;
+			if (no_precision)
+				pad.precision_ = -1;
 			break;
 		case 'd':
 			fl |= os::dec;
 		case 'i':	/* basefield == 0 */
 			sp = spec::to_int;
+			if (no_precision)
+				pad.precision_ = -1;
 			break;
 		case 's': case 'S':
 			if (no_precision)
