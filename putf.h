@@ -240,8 +240,17 @@ public:
 private:
 	template <typename _T>
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
-	    typename std::enable_if<!std::is_integral<_T>::value or
+	    typename std::enable_if<!std::is_arithmetic<_T>::value or
 	    _accept_narrow<traits_type, _T>::value>::type* = 0) {
+		return _output__(fl, pad, t_);
+	}
+
+	template <typename _T>
+	Stream& _with(fmtflags fl, padding pad, identity<_T>,
+	    typename std::enable_if<std::is_floating_point<_T>::value
+	    >::type* = 0) {
+		if (fl & Stream::internal and !std::isfinite(t_))
+			pad.fill_ = out_.fill();
 		return _output__(fl, pad, t_);
 	}
 
