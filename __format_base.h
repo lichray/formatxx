@@ -91,7 +91,7 @@ auto get(_format<Iter, T...> const& o)
 template <typename Stream>
 struct _unformatted_guard {
 	_unformatted_guard(Stream& s) :
-		stream_(s), flags_(s.flags()), width_(s.width()) {}
+		stream_(s), flags_(s.flags()), width_(s.width(0)) {}
 	~_unformatted_guard() {
 		stream_.width(width_);
 		stream_.flags(flags_);
