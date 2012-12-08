@@ -366,6 +366,7 @@ struct _put_fmt {
 
 		auto fl = _flags_for_output(out);
 		_padding<CharT> pad(out);
+		pad.precision_ = -1;
 		enum class spec {
 			none,
 			raw,
@@ -408,11 +409,9 @@ struct _put_fmt {
 			out.width(_parse_int(b, end(t), fac));
 
 		// precision defaults to zero with a single '.'
-		bool no_precision = true;
 		if (*b == out.widen('.')) {
 			++b;
 			pad.precision_ = _parse_int(b, end(t), fac);
-			no_precision = false;
 		}
 
 		// ignore all length modifiers
@@ -436,28 +435,30 @@ struct _put_fmt {
 		case 'x':
 			fl |= os::hex;
 			sp = spec::to_unsigned;
-			if (no_precision)
-				pad.precision_ = -1;
 			break;
 		case 'o':
 			fl |= os::oct;
 			sp = spec::to_unsigned;
-			if (no_precision)
-				pad.precision_ = -1;
 			break;
 		case 'E':
 			fl |= os::uppercase;
 		case 'e':
 			fl |= os::scientific;
+			if (pad.precision_ < 0)
+				pad.precision_ = 6;
 			break;
 		case 'F':
 			fl |= os::uppercase;
 		case 'f':
 			fl |= os::fixed;
+			if (pad.precision_ < 0)
+				pad.precision_ = 6;
 			break;
 		case 'G':
 			fl |= os::uppercase;
 		case 'g':	/* floatfield == 0 */
+			if (pad.precision_ < 0)
+				pad.precision_ = 6;
 			break;
 		case 'A':
 			fl |= os::uppercase;
@@ -467,19 +468,13 @@ struct _put_fmt {
 		case 'u':
 			fl |= os::dec;
 			sp = spec::to_unsigned;
-			if (no_precision)
-				pad.precision_ = -1;
 			break;
 		case 'd':
 			fl |= os::dec;
 		case 'i':	/* basefield == 0 */
 			sp = spec::to_int;
-			if (no_precision)
-				pad.precision_ = -1;
 			break;
 		case 's': case 'S':
-			if (no_precision)
-				pad.precision_ = -1;
 			break;
 		case 'c': case 'C':
 			sp = spec::to_char;
