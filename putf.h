@@ -251,9 +251,9 @@ private:
 		return _output_chars__(fl, pad, t_);
 	}
 
-	template <typename CharT>
-	Stream& _with(fmtflags fl, padding pad, identity<CharT *>,
-	    typename _accept_narrow<char_type, CharT>::char_type* = 0) {
+	template <typename _CharT>
+	Stream& _with(fmtflags fl, padding pad, identity<_CharT *>,
+	    typename _accept_narrow<char_type, _CharT>::char_type* = 0) {
 		return _output_chars__(fl, pad, t_);
 	}
 
