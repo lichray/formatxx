@@ -184,6 +184,9 @@ _outputter<Stream, T> _output(Stream& out, T const& t) {
 
 template <typename Stream, typename T>
 class _outputter {
+	template <typename _Stream, typename _T>
+	friend class _outputter;
+
 	typedef typename std::decay<T>::type Tp_;
 	typedef typename std::conditional<std::is_pointer<Tp_>::value,
 			typename std::add_pointer<
@@ -225,7 +228,7 @@ public:
 		// simulate `out_'
 		dummy_out.width(out_.width(0));
 		dummy_out.imbue(out_.getloc());
-		_output(dummy_out, t_).with(fl, pad);
+		_output(dummy_out, t_)._with(fl, pad, identity<RealT>());
 		auto s = dummy_out.str();
 		auto i = s.find(out_.widen('+'));
 		if (i != decltype(s)::npos)
