@@ -142,7 +142,7 @@ int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 template <typename Stream>
 inline auto _flags_for_output(Stream const& out) -> decltype(out.flags()) {
 	using os = Stream;
-	return out.flags() & os::boolalpha & os::unitbuf;
+	return out.flags() & os::unitbuf;
 }
 
 template <typename CharT>
@@ -485,6 +485,7 @@ struct _put_fmt {
 			sp = spec::to_int;
 			break;
 		case 's': case 'S':
+			fl |= os::boolalpha;
 			break;
 		case 'c': case 'C':
 			sp = spec::to_char;
