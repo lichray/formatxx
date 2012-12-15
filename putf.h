@@ -259,7 +259,7 @@ private:
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
 	    typename std::enable_if<std::is_integral<_T>::value and
 	    not _accept_narrow<traits_type, _T>::value>::type* = 0) {
-		return _output_int__(fl, pad, t_);
+		return _output_int__(fl, pad);
 	}
 
 	Stream& _with(fmtflags fl, padding pad, identity<char_type>) {
@@ -283,19 +283,18 @@ private:
 		return _output_chars__(fl, pad, t_);
 	}
 
-	template <typename _Int>
-	Stream& _output_int__(fmtflags fl, padding pad, _Int i) {
+	Stream& _output_int__(fmtflags fl, padding pad) {
 		using os = std::basic_ostringstream<char_type, traits_type>;
 
-		if (pad.precision_ == 0 and i == 0)
+		if (pad.precision_ == 0 and t_ == 0)
 			return _output__(fl, pad, "");
 		if (pad.precision_ <= 1 )
 			return _output__(fl, pad, t_);
 
-		int w = fl & os::hex ? _lexical_width<16>(i) :
-			fl & os::oct ? _lexical_width<8>(i) +
+		int w = fl & os::hex ? _lexical_width<16>(t_) :
+			fl & os::oct ? _lexical_width<8>(t_) +
 			!!(fl & os::showbase) :
-			_lexical_width<10>(i);
+			_lexical_width<10>(t_);
 		if (pad.precision_ <= w)
 			return _output__(fl, pad, t_);
 
