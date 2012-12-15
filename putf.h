@@ -153,6 +153,7 @@ struct _padding {
 
 	std::streamsize	precision_;
 	CharT		fill_;
+	bool		align_sign_ = false;
 };
 
 template <typename Stream>
@@ -384,7 +385,6 @@ struct _put_fmt {
 			to_char,
 			to_int,
 		} sp = spec::none;
-		bool align_sign = false;
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -396,7 +396,7 @@ struct _put_fmt {
 			break;
 		case ' ':
 			if (!(fl & os::showpos))
-				align_sign = true;
+				pad.align_sign_ = true;
 			break;
 		case '#':
 			fl |= os::showbase | os::showpoint;
@@ -504,12 +504,12 @@ struct _put_fmt {
 				    out.widen('%')), t);
 		case spec::none: {
 			auto v = _output(out, get<I>(t));
-			return _put_fmt<I + 1, N>::apply(align_sign ?
+			return _put_fmt<I + 1, N>::apply(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
 		}
 		case spec::to_int: {
 			auto v = _output(out, _to_int<Traits>(get<I>(t)));
-			return _put_fmt<I + 1, N>::apply(align_sign ?
+			return _put_fmt<I + 1, N>::apply(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
 		}
 		case spec::to_unsigned:
