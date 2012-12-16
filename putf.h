@@ -274,13 +274,13 @@ private:
 	}
 
 	Stream& _with(fmtflags fl, padding pad, identity<char_type *>) {
-		return _output_chars__(fl, pad, t_);
+		return _output_chars__(fl, pad);
 	}
 
 	template <typename _CharT>
 	Stream& _with(fmtflags fl, padding pad, identity<_CharT *>,
 	    typename _accept_narrow<char_type, _CharT>::char_type* = 0) {
-		return _output_chars__(fl, pad, t_);
+		return _output_chars__(fl, pad);
 	}
 
 	Stream& _output_int__(fmtflags fl, padding pad) {
@@ -308,16 +308,17 @@ private:
 		return _output__(fl, pad, s);
 	}
 
-	template <typename _CharT>
-	Stream& _output_chars__(fmtflags fl, padding pad, _CharT const *t) {
+	Stream& _output_chars__(fmtflags fl, padding pad) {
+		typedef typename std::remove_pointer<RealT>::type _CharT;
+
 		size_t n = 0;
-		auto i = t;
+		auto i = t_;
 		for (; *i and n < pad.precision_; ++i)
 			++n;
 		if (*i != 0)
 			return _output__(fl, pad,
-			    std::basic_string<_CharT>(t, n).data());
-		return _output__(fl, pad, t);
+			    std::basic_string<_CharT>(t_, n).data());
+		return _output__(fl, pad, t_);
 	}
 
 	template <typename _T>
