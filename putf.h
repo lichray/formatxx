@@ -494,7 +494,7 @@ struct _put_fmt {
 			sp = spec::raw;
 			if (b == i) break;
 		default:
-			throw std::invalid_argument("bad format string ");
+			throw std::invalid_argument("bad format string");
 		}
 		++b;
 
