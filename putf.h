@@ -341,6 +341,7 @@ struct _put_fmt<N, N> {
 	    _fmt_put<Iter, T...>& t) -> decltype(out)
 	{
 		using std::begin; using std::end;
+		using os = std::basic_ostream<CharT, Traits>;
 
 		auto i = std::find(begin(t), end(t), out.widen('%'));
 		if (i == end(t))
@@ -354,7 +355,8 @@ struct _put_fmt<N, N> {
 			return _put_fmt<N, N>::apply(out.put(
 				    out.widen('%')), t);
 		default:
-			throw std::invalid_argument("too few arguments");
+			out.setstate(os::failbit);	// too few arguments
+			return out;
 		}
 	}
 };
@@ -369,8 +371,10 @@ struct _put_fmt {
 		using os = std::basic_ostream<CharT, Traits>;
 
 		auto i = std::find(begin(t), end(t), out.widen('%'));
-		if (i == end(t))
-			throw std::invalid_argument("too many arguments");
+		if (i == end(t)) {
+			out.setstate(os::failbit);	// too many arguments
+			return out;
+		}
 		out.write(&*begin(t), i - begin(t));
 		auto& b = begin(t);
 		b = ++i;
@@ -494,7 +498,8 @@ struct _put_fmt {
 			sp = spec::raw;
 			if (b == i) break;
 		default:
-			throw std::invalid_argument("bad format string");
+			out.setstate(os::failbit);	// bad format string
+			return out;
 		}
 		++b;
 
