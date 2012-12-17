@@ -331,17 +331,25 @@ private:
 	}
 };
 
-template <size_t I, size_t N>
-struct _put_fmt;
+template <typename CharT, typename Traits, size_t I, size_t N>
+struct _put_fmtter;
 
-template <size_t N>
-struct _put_fmt<N, N> {
-	template <typename CharT, typename Traits, typename Iter, typename... T>
-	static auto apply(std::basic_ostream<CharT, Traits>& out,
-	    _fmt_put<Iter, T...>& t) -> decltype(out)
+template <size_t I, size_t N, typename CharT, typename Traits>
+inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out)
+	-> _put_fmtter<CharT, Traits, I, N> {
+	return _put_fmtter<CharT, Traits, I, N>(out);
+}
+
+template <typename CharT, typename Traits, size_t N>
+struct _put_fmtter<CharT, Traits, N, N> {
+	using os = std::basic_ostream<CharT, Traits>;
+
+	explicit _put_fmtter(os& s) : out(s) {}
+
+	template <typename Iter, typename... T>
+	os& from(_fmt_put<Iter, T...>& t)
 	{
 		using std::begin; using std::end;
-		using os = std::basic_ostream<CharT, Traits>;
 
 		auto i = std::find(begin(t), end(t), out.widen('%'));
 		if (i == end(t))
@@ -352,23 +360,27 @@ struct _put_fmt<N, N> {
 		switch (out.narrow(*b, 0)) {
 		case '%':
 			++b;
-			return _put_fmt<N, N>::apply(out.put(
-				    out.widen('%')), t);
+			return _put_fmt<N, N>(out.put(out.widen('%'))).from(t);
 		default:
 			out.setstate(os::failbit);	// too few arguments
 			return out;
 		}
 	}
+
+private:
+	os& out;
 };
 
-template <size_t I, size_t N>
-struct _put_fmt {
-	template <typename CharT, typename Traits, typename Iter, typename... T>
-	static auto apply(std::basic_ostream<CharT, Traits>& out,
-	    _fmt_put<Iter, T...>& t) -> decltype(out)
+template <typename CharT, typename Traits, size_t I, size_t N>
+struct _put_fmtter {
+	using os = std::basic_ostream<CharT, Traits>;
+
+	explicit _put_fmtter(os& s) : out(s) {}
+
+	template <typename Iter, typename... T>
+	os& from(_fmt_put<Iter, T...>& t)
 	{
 		using std::begin; using std::end;
-		using os = std::basic_ostream<CharT, Traits>;
 
 		auto i = std::find(begin(t), end(t), out.widen('%'));
 		if (i == end(t)) {
@@ -505,30 +517,35 @@ struct _put_fmt {
 
 		switch (sp) {
 		case spec::raw:
-			return _put_fmt<I, N>::apply(out.put(
-				    out.widen('%')), t);
+			return _put_fmt<I, N>(out.put(out.widen('%'))).from(t);
 		case spec::none: {
 			auto v = _output(out, get<I>(t));
-			return _put_fmt<I + 1, N>::apply(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
+			return _put_fmt<I + 1, N>(pad.align_sign_ ?
+			    v.with_aligned_sign(fl, pad) :
+			    v.with(fl, pad)).from(t);
 		}
 		case spec::to_int: {
 			auto v = _output(out, _to_int<Traits>(get<I>(t)));
-			return _put_fmt<I + 1, N>::apply(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) : v.with(fl, pad), t);
+			return _put_fmt<I + 1, N>(pad.align_sign_ ?
+			    v.with_aligned_sign(fl, pad) :
+			    v.with(fl, pad)).from(t);
 		}
 		case spec::to_unsigned:
-			return _put_fmt<I + 1, N>::apply(_output(out,
+			return _put_fmt<I + 1, N>(_output(out,
 				    fl & os::dec ?
 				    _to_unsigned(_to_int<Traits>(get<I>(t))) :
-				    _to_unsigned(get<I>(t))).with(fl, pad), t);
+				    _to_unsigned(get<I>(t))).with(
+				    fl, pad)).from(t);
 		case spec::to_char:
-			return _put_fmt<I + 1, N>::apply(_output(out,
+			return _put_fmt<I + 1, N>(_output(out,
 				    _to_char<Traits>(get<I>(t))).with(
-				    fl, pad), t);
+				    fl, pad)).from(t);
 		}
 		abort(); /* shut up gcc */
 	}
+
+private:
+	os& out;
 };
 
 template <typename CharT, typename Traits, typename... T>
@@ -536,7 +553,7 @@ inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
     _fmt_put<CharT const *, T...> t) -> decltype(out)
 {
 	_unformatted_guard<decltype(out)> _(out);
-	return _put_fmt<0, sizeof...(T)>::apply(out, t);
+	return _put_fmt<0, sizeof...(T)>(out).from(t);
 }
 
 template <typename CharT, typename Traits, typename... T>
@@ -545,7 +562,7 @@ inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
 	-> decltype(out)
 {
 	_unformatted_guard<decltype(out)> _(out);
-	return _put_fmt<0, sizeof...(T)>::apply(out, t);
+	return _put_fmt<0, sizeof...(T)>(out).from(t);
 }
 
 }
