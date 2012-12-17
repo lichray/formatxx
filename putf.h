@@ -375,7 +375,21 @@ template <typename CharT, typename Traits, size_t I, size_t N>
 struct _put_fmtter {
 	using os = std::basic_ostream<CharT, Traits>;
 
-	explicit _put_fmtter(os& s) : out(s) {}
+	typedef typename os::fmtflags	fmtflags;
+	typedef _padding<CharT>		padding;
+
+	enum class spec {
+		none,
+		raw,
+		to_unsigned,
+		to_char,
+		to_int,
+	};
+
+	explicit _put_fmtter(os& s) :
+		out(s), fl(_flags_for_output(out)), pad(out) {
+		pad.precision_ = -1;
+	}
 
 	template <typename Iter, typename... T>
 	os& from(_fmt_put<Iter, T...>& t)
@@ -390,17 +404,6 @@ struct _put_fmtter {
 		out.write(&*begin(t), i - begin(t));
 		auto& b = begin(t);
 		b = ++i;
-
-		auto fl = _flags_for_output(out);
-		_padding<CharT> pad(out);
-		pad.precision_ = -1;
-		enum class spec {
-			none,
-			raw,
-			to_unsigned,
-			to_char,
-			to_int,
-		} sp = spec::none;
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -545,7 +548,10 @@ struct _put_fmtter {
 	}
 
 private:
-	os& out;
+	os&		out;
+	spec		sp = spec::none;
+	fmtflags	fl;
+	padding		pad;
 };
 
 template <typename CharT, typename Traits, typename... T>
