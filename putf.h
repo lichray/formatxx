@@ -129,6 +129,22 @@ inline auto _to_int(T t)
 	return t;
 }
 
+template <typename T>
+inline auto _streamsize_or_not(T const& t,
+    typename std::enable_if<!std::is_convertible<T,
+    std::streamsize>::value>::type* = 0)
+	-> std::pair<bool, std::streamsize> {
+	return { false, 0 };
+}
+
+template <typename T>
+inline auto _streamsize_or_not(T t,
+    typename std::enable_if<std::is_convertible<T,
+    std::streamsize>::value>::type* = 0)
+	-> std::pair<bool, std::streamsize> {
+	return { true, t };
+}
+
 template <typename Iter, typename Facet>
 int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 	int n = 0;
@@ -334,10 +350,10 @@ private:
 template <typename CharT, typename Traits, size_t I, size_t N>
 struct _put_fmtter;
 
-template <size_t I, size_t N, typename CharT, typename Traits>
-inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out)
+template <size_t I, size_t N, typename CharT, typename Traits, typename... Args>
+inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args)
 	-> _put_fmtter<CharT, Traits, I, N> {
-	return _put_fmtter<CharT, Traits, I, N>(out);
+	return _put_fmtter<CharT, Traits, I, N>(out, args...);
 }
 
 template <typename CharT, typename Traits, size_t N>
@@ -345,6 +361,11 @@ struct _put_fmtter<CharT, Traits, N, N> {
 	using os = std::basic_ostream<CharT, Traits>;
 
 	explicit _put_fmtter(os& s) : out(s) {}
+
+	template <typename Arg0, typename... Arg1>
+	_put_fmtter(os& s, Arg0, Arg1...) : out(s) {
+		out.setstate(os::failbit);		// too many *
+	}
 
 	template <typename Iter, typename... T>
 	os& from(_fmt_put<Iter, T...>& t)
@@ -371,6 +392,20 @@ private:
 	os& out;
 };
 
+enum class spec {
+	none,
+	raw,
+	to_unsigned,
+	to_char,
+	to_int,
+};
+
+enum class jump {
+	nope,
+	after_width,
+	after_precision,
+};
+
 template <typename CharT, typename Traits, size_t I, size_t N>
 struct _put_fmtter {
 	using os = std::basic_ostream<CharT, Traits>;
@@ -378,31 +413,37 @@ struct _put_fmtter {
 	typedef typename os::fmtflags	fmtflags;
 	typedef _padding<CharT>		padding;
 
-	enum class spec {
-		none,
-		raw,
-		to_unsigned,
-		to_char,
-		to_int,
-	};
-
 	explicit _put_fmtter(os& s) :
 		out(s), fl(_flags_for_output(out)), pad(out) {
 		pad.precision_ = -1;
 	}
+
+	_put_fmtter(os& s, jump jp, spec sp, fmtflags fl, padding pad) :
+		out(s), jp(jp), sp(sp), fl(fl), pad(pad) {}
 
 	template <typename Iter, typename... T>
 	os& from(_fmt_put<Iter, T...>& t)
 	{
 		using std::begin; using std::end;
 
-		auto i = std::find(begin(t), end(t), out.widen('%'));
+		auto& b = begin(t);
+		auto i = b;
+		auto& fac = std::use_facet<std::ctype<CharT>>(out.getloc());
+
+		switch (jp) {
+		case jump::after_width:
+			goto after_width;
+		case jump::after_precision:
+			goto after_precision;
+		case jump::nope:;
+		}
+
+		i = std::find(begin(t), end(t), out.widen('%'));
 		if (i == end(t)) {
 			out.setstate(os::failbit);	// too many arguments
 			return out;
 		}
 		out.write(&*begin(t), i - begin(t));
-		auto& b = begin(t);
 		b = ++i;
 
 		parse_flags:
@@ -433,15 +474,49 @@ struct _put_fmtter {
 			goto parse_flags;
 
 		parse_width:
-		auto& fac = std::use_facet<std::ctype<CharT>>(out.getloc());
 		if (isdigit(*b, out.getloc()))
 			out.width(_parse_int(b, end(t), fac));
+		else if (*b == out.widen('*')) {
+			++b;
+			auto sz = _streamsize_or_not(get<I>(t));
+			if (!sz.first) {
+				out.setstate(os::failbit);
+				return out;
+			}
+			jp = jump::after_width;
+			if (sz.second >= 0)
+				out.width(sz.second);
+			else {
+				// '-' clears '0'
+				fl &= ~os::adjustfield;
+				fl |= os::left;
+				pad.fill_ = out.fill();
+				out.width(-sz.second);
+			}
+			return _put_fmt<I + 1, N>(out, jp, sp, fl, pad).from(t);
+		}
+
+		after_width:
 
 		// precision defaults to zero with a single '.'
 		if (*b == out.widen('.')) {
-			++b;
-			pad.precision_ = _parse_int(b, end(t), fac);
+			if (*++b == out.widen('*')) {
+				++b;
+				auto sz = _streamsize_or_not(get<I>(t));
+				if (!sz.first) {
+					out.setstate(os::failbit);
+					return out;
+				}
+				jp = jump::after_precision;
+				if (sz.second >= 0)
+					pad.precision_ = sz.second;
+				return _put_fmt<I + 1, N>(
+				    out, jp, sp, fl, pad).from(t);
+			} else
+				pad.precision_ = _parse_int(b, end(t), fac);
 		}
+
+		after_precision:
 
 		// ignore all length modifiers
 		switch (auto c = out.narrow(*b, 0)) {
@@ -549,6 +624,7 @@ struct _put_fmtter {
 
 private:
 	os&		out;
+	jump		jp = jump::nope;
 	spec		sp = spec::none;
 	fmtflags	fl;
 	padding		pad;
