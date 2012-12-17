@@ -484,10 +484,10 @@ struct _put_fmt {
 		case 'i':	/* basefield == 0 */
 			sp = spec::to_int;
 			break;
-		case 's': case 'S':
+		case 's':
 			fl |= os::boolalpha;
 			break;
-		case 'c': case 'C':
+		case 'c':
 			sp = spec::to_char;
 			break;
 		case '%':
