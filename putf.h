@@ -196,7 +196,8 @@ template <typename Stream, typename T>
 class _outputter;
 
 template <typename Stream, typename T>
-_outputter<Stream, T> _output(Stream& out, T const& t) {
+inline auto _output(Stream& out, T const& t)
+	-> _outputter<Stream, T> {
 	return _outputter<Stream, T>(out, t);
 }
 
