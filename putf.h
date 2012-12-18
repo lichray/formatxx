@@ -33,7 +33,8 @@
 #include <locale>
 #include <sstream>
 
-namespace stdex {
+namespace std {
+namespace experimental {
 
 template <typename Iter, typename... T>
 using _fmt_put = _format<Iter, T...>;
@@ -660,6 +661,7 @@ inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
 	return _put_fmt<0, sizeof...(T)>(out).from(t);
 }
 
+}
 }
 
 #endif

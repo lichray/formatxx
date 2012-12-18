@@ -4,7 +4,8 @@
 #include <cstdio>
 
 using std::cout; using std::wcout;
-using stdex::putf; using stdex::sputf;
+using std::experimental::putf;
+using std::experimental::sputf;
 
 int main() {
 	auto f = NAN;

@@ -30,7 +30,8 @@
 #include <stdexcept>
 #include <tuple>
 
-namespace stdex {
+namespace std {
+namespace experimental {
 
 template <typename T>
 using identity = std::common_type<T>;
@@ -118,6 +119,7 @@ int _lexical_width(Int i) {
 	return n;
 }
 
+}
 }
 
 #endif
