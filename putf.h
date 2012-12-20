@@ -285,9 +285,8 @@ private:
 		return _output__(fl, pad, t_);
 	}
 
-	template <typename _CharT, typename _Traits>
 	Stream& _with(fmtflags fl, padding pad,
-	    identity<std::basic_string<_CharT, _Traits>>) {
+	    identity<std::basic_string<char_type, traits_type>>) {
 		return _output__(fl, pad, pad.precision_ < t_.size() ?
 		    t_.substr(0, pad.precision_) : t_);
 	}
