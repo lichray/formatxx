@@ -539,10 +539,14 @@ struct _put_fmtter {
 		case 'x':
 			fl |= os::hex;
 			sp = spec::to_unsigned;
+			if (pad.precision_ >= 0)
+				_ignore_zero_padding();
 			break;
 		case 'o':
 			fl |= os::oct;
 			sp = spec::to_unsigned;
+			if (pad.precision_ >= 0)
+				_ignore_zero_padding();
 			break;
 		case 'E':
 			fl |= os::uppercase;
@@ -572,11 +576,15 @@ struct _put_fmtter {
 		case 'u':
 			fl |= os::dec;
 			sp = spec::to_unsigned;
+			if (pad.precision_ >= 0)
+				_ignore_zero_padding();
 			break;
 		case 'd':
 			fl |= os::dec;
 		case 'i':	/* basefield == 0 */
 			sp = spec::to_int;
+			if (pad.precision_ >= 0)
+				_ignore_zero_padding();
 			break;
 		case 's':
 			fl |= os::boolalpha;
