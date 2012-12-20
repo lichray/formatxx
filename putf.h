@@ -489,9 +489,8 @@ struct _put_fmtter {
 				out.width(sz.second);
 			else {
 				// '-' clears '0'
-				fl &= ~os::adjustfield;
+				_ignore_zero_padding();
 				fl |= os::left;
-				pad.fill_ = out.fill();
 				out.width(-sz.second);
 			}
 			return _put_fmt<I + 1, N>(out, jp, sp, fl, pad).from(t);
@@ -624,6 +623,11 @@ struct _put_fmtter {
 	}
 
 private:
+	void _ignore_zero_padding() {
+		fl &= ~os::internal;
+		pad.fill_ = out.fill();
+	}
+
 	os&		out;
 	jump		jp = jump::nope;
 	spec		sp = spec::none;
