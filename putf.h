@@ -373,11 +373,11 @@ struct _put_fmtter<CharT, Traits, N, N> {
 	{
 		using std::begin; using std::end;
 
-		auto i = std::find(begin(t), end(t), out.widen('%'));
-		if (i == end(t))
-			return out.write(&*begin(t), i - begin(t));
-		out.write(&*begin(t), i - begin(t));
 		auto& b = begin(t);
+		auto i = std::find(b, end(t), out.widen('%'));
+		out.write(&*b, i - begin(t));
+		if (i == end(t))
+			return out;
 		b = ++i;
 		switch (out.narrow(*b, 0)) {
 		case '%':
@@ -439,12 +439,12 @@ struct _put_fmtter {
 		case jump::nope:;
 		}
 
-		i = std::find(begin(t), end(t), out.widen('%'));
+		i = std::find(b, end(t), out.widen('%'));
+		out.write(&*b, i - begin(t));
 		if (i == end(t)) {
 			out.setstate(os::failbit);	// too many arguments
 			return out;
 		}
-		out.write(&*begin(t), i - begin(t));
 		b = ++i;
 
 		parse_flags:
