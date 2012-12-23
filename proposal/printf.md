@@ -121,15 +121,14 @@ printed without formatting.
 
         // types _Ts1_ and _Ts2_ are sets of implementation types which are distinguishable for different T...
 
-        // [TODO: or just a pointer? ]
-        template <typename CharT, size_t N, typename... T>
-        _Ts1_ putf(CharT const (&fmt)[N], T const&... t);
+        template <typename CharT, typename... T>
+        _Ts1_ putf(CharT const *fmt, T const&... t);
 
         template <typename CharT, typename Traits, typename Allocator, typename... T>
         _Ts2_ putf(basic_string<CharT, Traits, Allocator> const& fmt, T const&... t);
 
-        template <typename CharT, size_t N, typename... T>
-        auto sputf(CharT const (&fmt)[N], T const&... t)
+        template <typename CharT, typename... T>
+        auto sputf(CharT const *fmt, T const&... t)
             -> basic_string<CharT>;
 
         template <typename CharT, typename Traits, typename Allocator, typename... T>
