@@ -36,10 +36,11 @@
 namespace std {
 namespace experimental {
 
-template <typename CharT, size_t N, typename... T>
-inline auto putf(CharT const (&fmt)[N], T const&... t)
+template <typename CharT, typename... T>
+inline auto putf(CharT const *fmt, T const&... t)
 	-> _fmt_put<CharT const *, T...> {
-	return _fmt_put<CharT const *, T...>(fmt, fmt + N - 1, t...);
+	return _fmt_put<CharT const *, T...>(fmt, fmt +
+	    std::char_traits<CharT>::length(fmt), t...);
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename... T>
@@ -48,11 +49,12 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
 }
 
-template <typename CharT, size_t N, typename... T>
-inline auto sputf(CharT const (&fmt)[N], T const&... t)
+template <typename CharT, typename... T>
+inline auto sputf(CharT const *fmt, T const&... t)
 	-> std::basic_string<CharT> {
 	std::basic_ostringstream<CharT> out;
-	out << _fmt_put<CharT const *, T...>(fmt, fmt + N - 1, t...);
+	out << _fmt_put<CharT const *, T...>(fmt, fmt +
+	    std::char_traits<CharT>::length(fmt), t...);
 	return out.str();
 }
 
