@@ -61,8 +61,8 @@ struct _accept_narrow<char, unsigned char> : std::true_type {
 };
 
 template <typename Iter, typename... T>
-struct _format {
-	_format(Iter const& it1, Iter const& it2, T const&... t) :
+struct _fmt_put {
+	_fmt_put(Iter const& it1, Iter const& it2, T const&... t) :
 		iter_(it1, it2), item_(t...) {}
 
 	Iter& begin() {
@@ -74,7 +74,7 @@ struct _format {
 	}
 
 	template <size_t _I, typename _Iter, typename... _T>
-	friend auto get(_format<_Iter, _T...> const&)
+	friend auto get(_fmt_put<_Iter, _T...> const&)
 		-> typename std::tuple_element<_I,
 		std::tuple<_T const&...>>::type;
 
@@ -84,7 +84,7 @@ private:
 };
 
 template <size_t I, typename Iter, typename... T>
-auto get(_format<Iter, T...> const& o)
+auto get(_fmt_put<Iter, T...> const& o)
 	-> typename std::tuple_element<I, std::tuple<T const&...>>::type {
 	return std::get<I>(o.item_);
 }
