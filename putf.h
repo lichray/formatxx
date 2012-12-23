@@ -45,9 +45,9 @@ inline auto putf(CharT const (&fmt)[N], T const&... t)
 	return _fmt_put<CharT const *, T...>(fmt, fmt + N - 1, t...);
 }
 
-template <typename CharT, typename Traits, typename... T>
-inline auto putf(std::basic_string<CharT, Traits> const& fmt, T const&... t)
-	-> _fmt_put<decltype(begin(fmt)), T...> {
+template <typename CharT, typename Traits, typename Allocator, typename... T>
+inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
+    T const&... t) -> _fmt_put<decltype(begin(fmt)), T...> {
 	return _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
 }
 
@@ -59,9 +59,9 @@ inline auto sputf(CharT const (&fmt)[N], T const&... t)
 	return out.str();
 }
 
-template <typename CharT, typename Traits, typename... T>
-inline auto sputf(std::basic_string<CharT, Traits> const& fmt, T const&... t)
-	-> std::basic_string<CharT, Traits> {
+template <typename CharT, typename Traits, typename Allocator, typename... T>
+inline auto sputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
+    T const&... t) -> std::basic_string<CharT, Traits> {
 	std::basic_ostringstream<CharT, Traits> out;
 	out << _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
 	return out.str();
@@ -285,8 +285,9 @@ private:
 		return _output__(fl, pad, t_);
 	}
 
+	template <typename Allocator>
 	Stream& _with(fmtflags fl, padding pad,
-	    identity<std::basic_string<char_type, traits_type>>) {
+	    identity<std::basic_string<char_type, traits_type, Allocator>>) {
 		return _output__(fl, pad, pad.precision_ < t_.size() ?
 		    t_.substr(0, pad.precision_) : t_);
 	}
@@ -643,18 +644,9 @@ private:
 	padding		pad;
 };
 
-template <typename CharT, typename Traits, typename... T>
+template <typename CharT, typename Traits, typename Iter, typename... T>
 inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
-    _fmt_put<CharT const *, T...> t) -> decltype(out)
-{
-	_unformatted_guard<decltype(out)> _(out);
-	return _put_fmt<0, sizeof...(T)>(out).from(t);
-}
-
-template <typename CharT, typename Traits, typename... T>
-inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
-    _fmt_put<decltype(begin(std::basic_string<CharT, Traits>())), T...> t)
-	-> decltype(out)
+    _fmt_put<Iter, T...> t) -> decltype(out)
 {
 	_unformatted_guard<decltype(out)> _(out);
 	return _put_fmt<0, sizeof...(T)>(out).from(t);
