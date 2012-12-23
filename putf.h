@@ -451,9 +451,11 @@ struct _put_fmtter {
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
 		case '-':
+			_ignore_zero_padding();
 			fl |= os::left;
 			break;
 		case '+':
+			pad.align_sign_ = false;
 			fl |= os::showpos;
 			break;
 		case ' ':
