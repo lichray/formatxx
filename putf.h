@@ -604,6 +604,7 @@ struct _put_fmtter {
 		// type-safe conversions are considered
 		switch (out.narrow(*b, 0)) {
 		case 'p':
+			pad.align_sign_ = false;
 			break;
 		case 'X':
 			fl |= os::uppercase;
@@ -658,6 +659,7 @@ struct _put_fmtter {
 				_ignore_zero_padding();
 			break;
 		case 's':
+			pad.align_sign_ = false;
 			fl |= os::boolalpha;
 			break;
 		case 'c':
@@ -670,13 +672,28 @@ struct _put_fmtter {
 			out.setstate(os::failbit);	// bad format string
 			return out;
 		}
-		++b;
 
 		if (argN > 0) {
 			jp = jump::positional_format;
 			positional_format:
 			if (argN - 1 != S)
 				return from<S + 1>(t);
+
+		typedef typename std::remove_reference<
+			decltype(get<S>(t))>::type type_i;
+
+		auto c = tolower(out.narrow(*b, 0));
+		switch (c) {
+		case 'e': case 'f': case 'g': case 'a':
+			if (!std::is_floating_point<type_i>::value)
+				pad.align_sign_ = false;
+		}
+		switch (c) {
+		case 'd': case 'i': case 'u': case 'o': case 'x':
+			if (!std::is_integral<type_i>::value)
+				pad.align_sign_ = false;
+		}
+		++b;
 
 		switch (sp) {
 		case spec::none: {
@@ -705,6 +722,22 @@ struct _put_fmtter {
 			abort(); /* not reached */
 		}
 		}
+
+		typedef typename std::remove_reference<
+			decltype(get<I>(t))>::type type_i;
+
+		auto c = tolower(out.narrow(*b, 0));
+		switch (c) {
+		case 'e': case 'f': case 'g': case 'a':
+			if (!std::is_floating_point<type_i>::value)
+				pad.align_sign_ = false;
+		}
+		switch (c) {
+		case 'd': case 'i': case 'u': case 'o': case 'x':
+			if (!std::is_integral<type_i>::value)
+				pad.align_sign_ = false;
+		}
+		++b;
 
 		switch (sp) {
 		case spec::raw:
