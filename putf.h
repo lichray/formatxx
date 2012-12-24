@@ -130,7 +130,7 @@ inline auto _to_int(T t)
 }
 
 template <typename T>
-inline auto _streamsize_or_not(T const& t,
+inline auto _streamsize_or_not(T const&,
     typename std::enable_if<!std::is_convertible<T,
     std::streamsize>::value>::type* = 0)
 	-> std::pair<bool, std::streamsize> {
@@ -457,7 +457,7 @@ struct _put_fmtter {
 		fl(o.fl), pad(o.pad), argN(o.argN) {}
 
 	template <size_t S = 0, typename Iter, typename... T>
-	auto from(_fmt_put<Iter, T...>& t, size_t ti = 0)
+	auto from(_fmt_put<Iter, T...>&, size_t = 0)
 		-> typename std::enable_if<S == N, os&>::type
 	{
 		out.setstate(os::failbit);
