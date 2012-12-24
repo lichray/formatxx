@@ -627,7 +627,6 @@ struct _put_fmtter {
 		// type-safe conversions are considered
 		switch (out.narrow(*b, 0)) {
 		case 'p':
-			pad.align_sign_ = false;
 			break;
 		case 'X':
 			fl |= os::uppercase;
@@ -676,7 +675,6 @@ struct _put_fmtter {
 				_ignore_zero_padding();
 			break;
 		case 's':
-			pad.align_sign_ = false;
 			fl |= os::boolalpha;
 			break;
 		case 'c':
@@ -700,6 +698,7 @@ struct _put_fmtter {
 		case 'p': case 's': case 'c':
 			if (std::is_integral<type_i>::value)
 				pad.precision_ = -1;
+			pad.align_sign_ = false;
 			break;
 		case 'e': case 'f': case 'g':
 			if (pad.precision_ < 0)
@@ -751,6 +750,7 @@ struct _put_fmtter {
 		case 'p': case 's': case 'c':
 			if (std::is_integral<type_i>::value)
 				pad.precision_ = -1;
+			pad.align_sign_ = false;
 			break;
 		case 'e': case 'f': case 'g':
 			if (pad.precision_ < 0)
