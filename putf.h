@@ -624,21 +624,15 @@ struct _put_fmtter {
 			fl |= os::uppercase;
 		case 'e':
 			fl |= os::scientific;
-			if (pad.precision_ < 0)
-				pad.precision_ = 6;
 			break;
 		case 'F':
 			fl |= os::uppercase;
 		case 'f':
 			fl |= os::fixed;
-			if (pad.precision_ < 0)
-				pad.precision_ = 6;
 			break;
 		case 'G':
 			fl |= os::uppercase;
 		case 'g':	/* floatfield == 0 */
-			if (pad.precision_ < 0)
-				pad.precision_ = 6;
 			break;
 		case 'A':
 			fl |= os::uppercase;
@@ -684,7 +678,11 @@ struct _put_fmtter {
 
 		auto c = tolower(out.narrow(*b, 0));
 		switch (c) {
-		case 'e': case 'f': case 'g': case 'a':
+		case 'e': case 'f': case 'g':
+			if (!std::is_integral<type_i>::value and
+			    pad.precision_ < 0)
+				pad.precision_ = 6;
+		case 'a':
 			if (!std::is_floating_point<type_i>::value)
 				pad.align_sign_ = false;
 		}
@@ -728,7 +726,11 @@ struct _put_fmtter {
 
 		auto c = tolower(out.narrow(*b, 0));
 		switch (c) {
-		case 'e': case 'f': case 'g': case 'a':
+		case 'e': case 'f': case 'g':
+			if (!std::is_integral<type_i>::value and
+			    pad.precision_ < 0)
+				pad.precision_ = 6;
+		case 'a':
 			if (!std::is_floating_point<type_i>::value)
 				pad.align_sign_ = false;
 		}
