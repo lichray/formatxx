@@ -222,7 +222,8 @@ the _flag_ characters and their effects on the output stream are:
 Under the same preconditions, the _field-width_ field, if any, sets the
 `width()` member of the output stream; and the _precision_ field, if any, sets
 the `precision()` member of the output stream.  *\[Note: The cases of a
-negative _field-width_ or _precision_ are described above. --end note\]*
+negative _field-width_ or _precision_ are described in [Technical
+Specifications](#technical_specifications). --end note\]*
 
 Under the same preconditions, the _type hint_ characters and their effects on
 the output stream are:
