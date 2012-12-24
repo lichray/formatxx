@@ -375,6 +375,12 @@ inline auto _put_fmt(_put_fmtter<CharT, Traits, _I, N> const& o)
 	return _put_fmtter<CharT, Traits, I, N>(o);
 }
 
+enum class access {
+	unknown,
+	sequential,
+	positional,
+};
+
 template <typename CharT, typename Traits, size_t N>
 struct _put_fmtter<CharT, Traits, N, N> {
 	template <typename _CharT, typename _Traits, size_t _I, size_t _N>
@@ -382,7 +388,7 @@ struct _put_fmtter<CharT, Traits, N, N> {
 
 	using os = std::basic_ostream<CharT, Traits>;
 
-	explicit _put_fmtter(os& s) : out(s) {}
+	explicit _put_fmtter(os& s, access = access::unknown) : out(s) {}
 
 	template <size_t _I>
 	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) : out(o.out) {
@@ -440,14 +446,14 @@ struct _put_fmtter {
 	typedef typename os::fmtflags	fmtflags;
 	typedef _padding<CharT>		padding;
 
-	explicit _put_fmtter(os& s) :
-		out(s), fl(_flags_for_output(out)), pad(out) {
+	explicit _put_fmtter(os& s, access a = access::unknown) :
+		out(s), ac(a), fl(_flags_for_output(out)), pad(out) {
 		pad.precision_ = -1;
 	}
 
 	template <size_t _I>
 	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) :
-		out(o.out), jp(o.jp), sp(o.sp),
+		out(o.out), ac(o.ac), jp(o.jp), sp(o.sp),
 		fl(o.fl), pad(o.pad), argN(o.argN) {}
 
 	template <size_t S = 0, typename Iter, typename... T>
@@ -492,9 +498,15 @@ struct _put_fmtter {
 
 		if (*b == out.widen('%')) {
 			++b;
-			return _put_fmt<I, N>(out.put(out.widen('%'))).from(t);
+			return _put_fmt<I, N>(out.put(out.widen('%')),
+			    ac).from(t);
 		}
 		argN = _parse_position(b, end(t), fac);
+		if (_mixing_access(argN)) {
+			out.setstate(os::failbit);
+			return out;
+		}
+		ac = argN > 0 ? access::positional : access::sequential;
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -531,6 +543,10 @@ struct _put_fmtter {
 		else if (*b == out.widen('*')) {
 			++b;
 			ti = _parse_position(b, end(t), fac);
+			if (_mixing_access(ti)) {
+				out.setstate(os::failbit);
+				return out;
+			}
 			if (ti > 0) {
 				jp = jump::positional_width;
 				positional_width:
@@ -566,6 +582,10 @@ struct _put_fmtter {
 			if (*++b == out.widen('*')) {
 				++b;
 				ti = _parse_position(b, end(t), fac);
+				if (_mixing_access(ti)) {
+					out.setstate(os::failbit);
+					return out;
+				}
 				if (ti > 0) {
 					jp = jump::positional_precision;
 					positional_precision:
@@ -698,24 +718,24 @@ struct _put_fmtter {
 			auto v = _output(out, get<S>(t));
 			return _put_fmt<I, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad)).from(t);
+			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_int: {
 			auto v = _output(out, _to_int<Traits>(get<S>(t)));
 			return _put_fmt<I, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad)).from(t);
+			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_unsigned:
 			return _put_fmt<I, N>(_output(out,
 				    fl & os::dec ?
 				    _to_unsigned(_to_int<Traits>(get<S>(t))) :
 				    _to_unsigned(get<S>(t))).with(
-				    fl, pad)).from(t);
+				    fl, pad), ac).from(t);
 		case spec::to_char:
 			return _put_fmt<I, N>(_output(out,
 				    _to_char<Traits>(get<S>(t))).with(
-				    fl, pad)).from(t);
+				    fl, pad), ac).from(t);
 		default:
 			abort(); /* not reached */
 		}
@@ -746,24 +766,24 @@ struct _put_fmtter {
 			auto v = _output(out, get<I>(t));
 			return _put_fmt<I + 1, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad)).from(t);
+			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_int: {
 			auto v = _output(out, _to_int<Traits>(get<I>(t)));
 			return _put_fmt<I + 1, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad)).from(t);
+			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_unsigned:
 			return _put_fmt<I + 1, N>(_output(out,
 				    fl & os::dec ?
 				    _to_unsigned(_to_int<Traits>(get<I>(t))) :
 				    _to_unsigned(get<I>(t))).with(
-				    fl, pad)).from(t);
+				    fl, pad), ac).from(t);
 		case spec::to_char:
 			return _put_fmt<I + 1, N>(_output(out,
 				    _to_char<Traits>(get<I>(t))).with(
-				    fl, pad)).from(t);
+				    fl, pad), ac).from(t);
 		}
 		abort(); /* shut up gcc */
 	}
@@ -774,7 +794,15 @@ private:
 		pad.fill_ = out.fill();
 	}
 
+	bool _mixing_access(size_t i) {
+		if ((ac == access::positional and !i) or
+		    (ac == access::sequential and i > 0))
+			return true;
+		return false;
+	}
+
 	os&		out;
+	access		ac;
 	jump		jp = jump::nope;
 	spec		sp = spec::none;
 	fmtflags	fl;
