@@ -696,17 +696,20 @@ struct _put_fmtter {
 		typedef typename std::remove_reference<
 			decltype(get<S>(t))>::type type_i;
 
-		auto c = tolower(out.narrow(*b, 0));
-		switch (c) {
+		switch (tolower(out.narrow(*b, 0))) {
+		case 'p': case 's': case 'c':
+			if (std::is_integral<type_i>::value)
+				pad.precision_ = -1;
+			break;
 		case 'e': case 'f': case 'g':
-			if (!std::is_integral<type_i>::value and
-			    pad.precision_ < 0)
+			if (pad.precision_ < 0)
 				pad.precision_ = 6;
 		case 'a':
+			if (std::is_integral<type_i>::value)
+				pad.precision_ = -1;
 			if (!std::is_floating_point<type_i>::value)
 				pad.align_sign_ = false;
-		}
-		switch (c) {
+			break;
 		case 'd': case 'i': case 'u': case 'o': case 'x':
 			if (!std::is_integral<type_i>::value)
 				pad.align_sign_ = false;
@@ -744,17 +747,20 @@ struct _put_fmtter {
 		typedef typename std::remove_reference<
 			decltype(get<I>(t))>::type type_i;
 
-		auto c = tolower(out.narrow(*b, 0));
-		switch (c) {
+		switch (tolower(out.narrow(*b, 0))) {
+		case 'p': case 's': case 'c':
+			if (std::is_integral<type_i>::value)
+				pad.precision_ = -1;
+			break;
 		case 'e': case 'f': case 'g':
-			if (!std::is_integral<type_i>::value and
-			    pad.precision_ < 0)
+			if (pad.precision_ < 0)
 				pad.precision_ = 6;
 		case 'a':
+			if (std::is_integral<type_i>::value)
+				pad.precision_ = -1;
 			if (!std::is_floating_point<type_i>::value)
 				pad.align_sign_ = false;
-		}
-		switch (c) {
+			break;
 		case 'd': case 'i': case 'u': case 'o': case 'x':
 			if (!std::is_integral<type_i>::value)
 				pad.align_sign_ = false;
