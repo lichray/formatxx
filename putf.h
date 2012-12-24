@@ -155,6 +155,12 @@ int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 	return n;
 }
 
+template <typename Iter, typename Facet>
+inline int _parse_position(Iter& b, Iter& e, Facet const& fac) {
+	int n = _parse_int(b, e, fac);
+	return *b == fac.widen('$') ? (++b, n) : 0;
+}
+
 template <typename Stream>
 inline auto _flags_for_output(Stream const& out) -> decltype(out.flags()) {
 	using os = Stream;
@@ -405,6 +411,9 @@ enum class jump {
 	nope,
 	after_width,
 	after_precision,
+	positional_width,
+	positional_precision,
+	positional_format,
 };
 
 template <typename CharT, typename Traits, size_t I, size_t N>
@@ -419,11 +428,21 @@ struct _put_fmtter {
 		pad.precision_ = -1;
 	}
 
-	_put_fmtter(os& s, jump jp, spec sp, fmtflags fl, padding pad) :
-		out(s), jp(jp), sp(sp), fl(fl), pad(pad) {}
+	_put_fmtter(os& s,
+	    jump jp, spec sp, fmtflags fl, padding pad, size_t argN) :
+		out(s), jp(jp), sp(sp), fl(fl), pad(pad), argN(argN) {}
 
-	template <typename Iter, typename... T>
-	os& from(_fmt_put<Iter, T...>& t)
+	template <size_t S = 0, typename Iter, typename... T>
+	auto from(_fmt_put<Iter, T...>& t, size_t ti = 0)
+		-> typename std::enable_if<S == N, os&>::type
+	{
+		out.setstate(os::failbit);
+		return out;
+	}
+
+	template <size_t S = 0, typename Iter, typename... T>
+	auto from(_fmt_put<Iter, T...>& t, size_t ti = 0)
+		-> typename std::enable_if<S < N, os&>::type
 	{
 		using std::begin; using std::end;
 
@@ -436,6 +455,12 @@ struct _put_fmtter {
 			goto after_width;
 		case jump::after_precision:
 			goto after_precision;
+		case jump::positional_width:
+			goto positional_width;
+		case jump::positional_precision:
+			goto positional_precision;
+		case jump::positional_format:
+			goto positional_format;
 		case jump::nope:;
 		}
 
@@ -446,6 +471,12 @@ struct _put_fmtter {
 			return out;
 		}
 		b = ++i;
+
+		if (*b != out.widen('0') and isdigit(*b, out.getloc()) and
+		    !(argN = _parse_position(b, end(t), fac))) {
+			out.setstate(os::failbit);
+			return out;
+		}
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -481,7 +512,23 @@ struct _put_fmtter {
 			out.width(_parse_int(b, end(t), fac));
 		else if (*b == out.widen('*')) {
 			++b;
-			auto sz = _streamsize_or_not(get<I>(t));
+			if (*b != out.widen('0') and
+			    isdigit(*b, out.getloc()) and
+			    !(ti = _parse_position(b, end(t), fac))) {
+				out.setstate(os::failbit);
+				return out;
+			}
+
+			if (ti > 0) {
+				jp = jump::positional_width;
+				positional_width:
+				if (ti - 1 != S)
+					return from<S + 1>(t, ti);
+			}
+
+			auto sz = ti > 0 ?
+				_streamsize_or_not(get<S>(t)) :
+				_streamsize_or_not(get<I>(t));
 			if (!sz.first) {
 				out.setstate(os::failbit);
 				return out;
@@ -495,7 +542,11 @@ struct _put_fmtter {
 				fl |= os::left;
 				out.width(-sz.second);
 			}
-			return _put_fmt<I + 1, N>(out, jp, sp, fl, pad).from(t);
+			return ti > 0 ?
+			    _put_fmt<I, N>(out,
+				jp, sp, fl, pad, argN).from(t) :
+			    _put_fmt<I + 1, N>(out,
+				jp, sp, fl, pad, argN).from(t);
 		}
 
 		after_width:
@@ -504,7 +555,23 @@ struct _put_fmtter {
 		if (*b == out.widen('.')) {
 			if (*++b == out.widen('*')) {
 				++b;
-				auto sz = _streamsize_or_not(get<I>(t));
+				if (*b != out.widen('0') and
+				    isdigit(*b, out.getloc()) and
+				    !(ti = _parse_position(b, end(t), fac))) {
+					out.setstate(os::failbit);
+					return out;
+				}
+
+				if (ti > 0) {
+					jp = jump::positional_precision;
+					positional_precision:
+					if (ti - 1 != S)
+						return from<S + 1>(t, ti);
+				}
+
+				auto sz = ti > 0 ?
+					_streamsize_or_not(get<S>(t)) :
+					_streamsize_or_not(get<I>(t));
 				if (!sz.first) {
 					out.setstate(os::failbit);
 					return out;
@@ -512,8 +579,11 @@ struct _put_fmtter {
 				jp = jump::after_precision;
 				if (sz.second >= 0)
 					pad.precision_ = sz.second;
-				return _put_fmt<I + 1, N>(
-				    out, jp, sp, fl, pad).from(t);
+				return ti > 0 ?
+				    _put_fmt<I, N>(out,
+					jp, sp, fl, pad, argN).from(t) :
+				    _put_fmt<I + 1, N>(out,
+					jp, sp, fl, pad, argN).from(t);
 			} else
 				pad.precision_ = _parse_int(b, end(t), fac);
 		}
@@ -603,6 +673,40 @@ struct _put_fmtter {
 		}
 		++b;
 
+		if (argN > 0) {
+			jp = jump::positional_format;
+			positional_format:
+			if (argN - 1 != S)
+				return from<S + 1>(t);
+
+		switch (sp) {
+		case spec::none: {
+			auto v = _output(out, get<S>(t));
+			return _put_fmt<I, N>(pad.align_sign_ ?
+			    v.with_aligned_sign(fl, pad) :
+			    v.with(fl, pad)).from(t);
+		}
+		case spec::to_int: {
+			auto v = _output(out, _to_int<Traits>(get<S>(t)));
+			return _put_fmt<I, N>(pad.align_sign_ ?
+			    v.with_aligned_sign(fl, pad) :
+			    v.with(fl, pad)).from(t);
+		}
+		case spec::to_unsigned:
+			return _put_fmt<I, N>(_output(out,
+				    fl & os::dec ?
+				    _to_unsigned(_to_int<Traits>(get<S>(t))) :
+				    _to_unsigned(get<S>(t))).with(
+				    fl, pad)).from(t);
+		case spec::to_char:
+			return _put_fmt<I, N>(_output(out,
+				    _to_char<Traits>(get<S>(t))).with(
+				    fl, pad)).from(t);
+		default:
+			abort(); /* not reached */
+		}
+		}
+
 		switch (sp) {
 		case spec::raw:
 			return _put_fmt<I, N>(out.put(out.widen('%'))).from(t);
@@ -643,6 +747,7 @@ private:
 	spec		sp = spec::none;
 	fmtflags	fl;
 	padding		pad;
+	size_t		argN = 0;
 };
 
 template <typename CharT, typename Traits, typename Iter, typename... T>
