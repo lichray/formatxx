@@ -88,8 +88,11 @@ extensibility, this proposal distinguishes the arguments to be printed into:
 `std::putf` takes a format string, followed by zero or more arguments.  A
 format string is composed of zero or more directives:  _ordinary characters_,
 which are copied unchanged to the output stream, and _format specifications_,
-each of which expects zero or more arguments.  Each specification matches the
-first unmatched argument in the argument list.
+each of which expects zero or more arguments.  Insufficient arguments result
+in an error described in [Error handling](#error_handling).  If the format
+string is exhausted while arguments remain, the excess arguments are ignored.
+
+Each specification matches the first unmatched argument in the argument list.
 
 Each format specification is introduced by a `'%'` character.  After which the
 following appear in sequence:

@@ -442,7 +442,7 @@ struct _put_fmtter {
 		i = std::find(b, end(t), out.widen('%'));
 		out.write(&*b, i - begin(t));
 		if (i == end(t)) {
-			out.setstate(os::failbit);	// too many arguments
+			// ignore excess arguments
 			return out;
 		}
 		b = ++i;
