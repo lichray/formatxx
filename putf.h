@@ -157,8 +157,14 @@ int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 
 template <typename Iter, typename Facet>
 inline int _parse_position(Iter& b, Iter& e, Facet const& fac) {
+	auto ob = b;
 	int n = _parse_int(b, e, fac);
-	return *b == fac.widen('$') ? (++b, n) : 0;
+	if (n == 0 or *b != fac.widen('$')) {
+		b = ob;
+		return 0;
+	}
+	++b;
+	return n;
 }
 
 template <typename Stream>
@@ -485,11 +491,7 @@ struct _put_fmtter {
 		}
 		b = ++i;
 
-		if (*b != out.widen('0') and isdigit(*b, out.getloc()) and
-		    !(argN = _parse_position(b, end(t), fac))) {
-			out.setstate(os::failbit);
-			return out;
-		}
+		argN = _parse_position(b, end(t), fac);
 
 		parse_flags:
 		switch (out.narrow(*b, 0)) {
@@ -525,13 +527,7 @@ struct _put_fmtter {
 			out.width(_parse_int(b, end(t), fac));
 		else if (*b == out.widen('*')) {
 			++b;
-			if (*b != out.widen('0') and
-			    isdigit(*b, out.getloc()) and
-			    !(ti = _parse_position(b, end(t), fac))) {
-				out.setstate(os::failbit);
-				return out;
-			}
-
+			ti = _parse_position(b, end(t), fac);
 			if (ti > 0) {
 				jp = jump::positional_width;
 				positional_width:
@@ -566,13 +562,7 @@ struct _put_fmtter {
 		if (*b == out.widen('.')) {
 			if (*++b == out.widen('*')) {
 				++b;
-				if (*b != out.widen('0') and
-				    isdigit(*b, out.getloc()) and
-				    !(ti = _parse_position(b, end(t), fac))) {
-					out.setstate(os::failbit);
-					return out;
-				}
-
+				ti = _parse_position(b, end(t), fac);
 				if (ti > 0) {
 					jp = jump::positional_precision;
 					positional_precision:
