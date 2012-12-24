@@ -416,7 +416,6 @@ private:
 
 enum class spec {
 	none,
-	raw,
 	to_unsigned,
 	to_char,
 	to_int,
@@ -491,6 +490,10 @@ struct _put_fmtter {
 		}
 		b = ++i;
 
+		if (*b == out.widen('%')) {
+			++b;
+			return _put_fmt<I, N>(out.put(out.widen('%'))).from(t);
+		}
 		argN = _parse_position(b, end(t), fac);
 
 		parse_flags:
@@ -659,9 +662,6 @@ struct _put_fmtter {
 		case 'c':
 			sp = spec::to_char;
 			break;
-		case '%':
-			sp = spec::raw;
-			if (b == i) break;
 		default:
 			out.setstate(os::failbit);	// bad format string
 			return out;
@@ -742,8 +742,6 @@ struct _put_fmtter {
 		++b;
 
 		switch (sp) {
-		case spec::raw:
-			return _put_fmt<I, N>(out.put(out.widen('%'))).from(t);
 		case spec::none: {
 			auto v = _output(out, get<I>(t));
 			return _put_fmt<I + 1, N>(pad.align_sign_ ?
