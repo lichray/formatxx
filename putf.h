@@ -363,14 +363,23 @@ inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args)
 	return _put_fmtter<CharT, Traits, I, N>(out, args...);
 }
 
+template <size_t I, size_t N, typename CharT, typename Traits, size_t _I>
+inline auto _put_fmt(_put_fmtter<CharT, Traits, _I, N> const& o)
+	-> _put_fmtter<CharT, Traits, I, N> {
+	return _put_fmtter<CharT, Traits, I, N>(o);
+}
+
 template <typename CharT, typename Traits, size_t N>
 struct _put_fmtter<CharT, Traits, N, N> {
+	template <typename _CharT, typename _Traits, size_t _I, size_t _N>
+	friend struct _put_fmtter;
+
 	using os = std::basic_ostream<CharT, Traits>;
 
 	explicit _put_fmtter(os& s) : out(s) {}
 
-	template <typename Arg0, typename... Arg1>
-	_put_fmtter(os& s, Arg0, Arg1...) : out(s) {
+	template <size_t _I>
+	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) : out(o.out) {
 		out.setstate(os::failbit);		// too many *
 	}
 
@@ -418,6 +427,9 @@ enum class jump {
 
 template <typename CharT, typename Traits, size_t I, size_t N>
 struct _put_fmtter {
+	template <typename _CharT, typename _Traits, size_t _I, size_t _N>
+	friend struct _put_fmtter;
+
 	using os = std::basic_ostream<CharT, Traits>;
 
 	typedef typename os::fmtflags	fmtflags;
@@ -428,9 +440,10 @@ struct _put_fmtter {
 		pad.precision_ = -1;
 	}
 
-	_put_fmtter(os& s,
-	    jump jp, spec sp, fmtflags fl, padding pad, size_t argN) :
-		out(s), jp(jp), sp(sp), fl(fl), pad(pad), argN(argN) {}
+	template <size_t _I>
+	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) :
+		out(o.out), jp(o.jp), sp(o.sp),
+		fl(o.fl), pad(o.pad), argN(o.argN) {}
 
 	template <size_t S = 0, typename Iter, typename... T>
 	auto from(_fmt_put<Iter, T...>& t, size_t ti = 0)
@@ -543,10 +556,8 @@ struct _put_fmtter {
 				out.width(-sz.second);
 			}
 			return ti > 0 ?
-			    _put_fmt<I, N>(out,
-				jp, sp, fl, pad, argN).from(t) :
-			    _put_fmt<I + 1, N>(out,
-				jp, sp, fl, pad, argN).from(t);
+			    _put_fmt<I, N>(*this).from(t) :
+			    _put_fmt<I + 1, N>(*this).from(t);
 		}
 
 		after_width:
@@ -580,10 +591,8 @@ struct _put_fmtter {
 				if (sz.second >= 0)
 					pad.precision_ = sz.second;
 				return ti > 0 ?
-				    _put_fmt<I, N>(out,
-					jp, sp, fl, pad, argN).from(t) :
-				    _put_fmt<I + 1, N>(out,
-					jp, sp, fl, pad, argN).from(t);
+				    _put_fmt<I, N>(*this).from(t) :
+				    _put_fmt<I + 1, N>(*this).from(t);
 			} else
 				pad.precision_ = _parse_int(b, end(t), fac);
 		}
