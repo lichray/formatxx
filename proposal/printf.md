@@ -275,7 +275,7 @@ calling `os << t`.
 This is an initial report; a wording can be prepared after a further
 discussion.
 
-## Sample implementation
+## Sample Implementation
 
 A sample implementation is available at
 <https://github.com/lichray/formatxx/tree/proposal>
