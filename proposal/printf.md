@@ -12,6 +12,8 @@
 
 ## Overview
 
+      cout << putf("hello, %s\n", "world");
+
 Printf defines the most widely used syntax to format a text output.  It exists
 in C, Perl, Python and even Java&trade;, and is available from Qt to
 Boost.Format`[1]`, but not C++ standard library.  This proposal tries to
