@@ -258,6 +258,7 @@ public:
 
 		// simulate `out_'
 		dummy_out.width(out_.width(0));
+		dummy_out.fill(out_.fill());
 		dummy_out.imbue(out_.getloc());
 		_output(dummy_out, t_)._with(fl, pad, identity<RealT>());
 		auto s = dummy_out.str();
