@@ -48,14 +48,10 @@ The syntax from printf in C is preserved as much as possible.  Such an
 syntax is:
 
  - Compatible with C; works as a drop-in replacement of `printf` (except `%n`).
- - Compatible with the non-positional syntax supported by Boost.Format.
+ - Compatible with the legacy syntax supported by Boost.Format.
 
-Positional specifications are not supported, because:
-
- - They are hard to read.
- - An implementation without a NL_ARGMAX`[4]` limit must suffer from a
-   significant performance loss (intermediate string concatenation, like
-   Boost.Format).
+POSIX`[4]` style positional arguments are added because they are necessary
+for i18n.
 
 The `%n` specification is dropped because of the security problem (and its
 weird semantics); no known printf fork (in Java&trade;, Python, Boost.Format,
@@ -88,34 +84,53 @@ extensibility, this proposal distinguishes the arguments to be printed into:
 `std::putf` takes a format string, followed by zero or more arguments.  A
 format string is composed of zero or more directives:  _ordinary characters_,
 which are copied unchanged to the output stream, and _format specifications_,
-each of which expects zero or more arguments.  Insufficient arguments result
-in an error described in [Error handling](#error_handling).  If the format
-string is exhausted while arguments remain, the excess arguments are ignored.
+each of which expects zero or more arguments.
 
-Each specification matches the first unmatched argument in the argument list.
+An empty format specification `%%` matches no argument; a `'%'` character is
+printed without formatting.
 
-Each format specification is introduced by a `'%'` character.  After which the
-following appear in sequence:
+A numbered format specification introduced by `"%`_`n`_`$"` matches the _n_th
+argument in the argument list, where _n_ is a decimal integer.
+
+An unnumbered format specification introduced by `'%'` matches the first
+unmatched argument in the argument list.
+
+Matching an out-of-range argument in a format string results in an error
+described in [Error handling](#error_handling), while the unmatched arguments
+are ignored.  An argument can be matched multiple times by a format string
+of the numbered format specifications.
+
+The character sequence `"%`_`n`_`$"` or the `'%'` character, introducing a
+format specification, has the following appear in sequence:
 
  - Zero or more _flags_ (in any order).
  - An optional minimum _field width_, which takes either a parameterized length
-   ('`*`'), described below, or a decimal integer.
+   ( `'*'` or `"*`_`n`_`$"`), described below, or a decimal integer.
  - An optional _precision_, which takes the form of a period ( `'.'` )
-   followed either by a parameterized length ( `'*'` ), described below, or an
+   followed either by a parameterized length ( `'*'` or `"*`_`n`_`$"` ),
+   described below, or an
    optional decimal digit string, where a null digit string is treated as zero.
  - An optional length modifier (ignored).
  - A _type hint_ character that indicates the type of the matched argument.
 
-A field width, or precision, or both, may be indicated by a parameterized
-length ( `'*'` ).  In this case an argument of type `streamsize` supplies the
-field width or precision.  Applications shall ensure that arguments specifying
-field width, or precision, or both appear in that order before the argument, if
-any, to be formatted.  A negative field width is taken as a `'-'` flag followed
+A field width, or precision, or both, may be indicated by a numbered
+parameterized length ( `"*`_`n`_`$"` ), which is allowed within a numbered
+format specification, or an unnumbered parameterized length ( `'*'` ), which is
+allowed within an unnumbered format specification.  In such cases an argument
+of type `streamsize` supplies the field width or precision.  A numbered
+parameterized length matches the _n_th argument in the argument list,  where
+_n_ is a decimal integer.  The unnumbered parameterized lengths, in their order
+of appearance, match the unmatched arguments in the argument list, before the
+format specification they belong to. 
+A negative field width is taken as a `'-'` flag followed
 by a positive field width.  A negative precision is taken as if the precision
 were omitted.
 
-The `%%` format specification matches no argument; a `'%'` character is
-printed without formatting.
+A format string can contain either numbered format specifications, or
+unnumbered format specifications, but not both.  Mixing numbered and
+unnumbered specifications or parameterized lengths result in an error described
+in [Error handling](#error_handling).  The empty format specification `%%` can
+be mixed with any specifications.
 
 ### Header `<ioformat>`
 
@@ -156,19 +171,22 @@ takes no effect to the printing, except:
 
 ### Error handling
 
-The output functions of the return values of `std::putf` may encounter the
-following kinds of error found in the return values:
+An output function of a return value of `std::putf` may encounter the
+following kinds of errors found in the return value:
 
- - A format specification is invalid.
- - A format specification expects more arguments than the unmatched arguments
+ - A format specification is syntactically invalid.
+ - A format specification expects an argument that does not appear
    in the argument list.
- - The argument matched a parameterized length ( `'*'` ) is not convertible to
+ - Mixing numbered and unnumbered format specifications or parameterized
+   lengths.
+ - The argument matched a parameterized length is not convertible to
    `streamsize`.
 
-The output functions set `ios_base::failbit` on the output streams when
-these errors are encountered, and then can return.  The well matched format
-specifications, as well as the ordinary characters, if any, must be formatted
-and wrote to the output stream before the point of the error, if any.
+The output function set `ios_base::failbit` on the output stream when
+one of the errors is encountered, and then can return.  The well matched format
+specifications, as well as the ordinary characters, if any, before the format
+specification that fails, must be formatted and wrote to the output stream
+before the function returns.
 
 ### Formatting
 
