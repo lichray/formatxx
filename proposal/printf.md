@@ -50,8 +50,27 @@ syntax is:
  - Compatible with C; works as a drop-in replacement of `printf` (except `%n`).
  - Compatible with the legacy syntax supported by Boost.Format.
 
+For example, both of the following
+
+      cout << format("The answer:%5d\n") % 42;  // boost.format
+      cout << putf("The answer:%5d\n", 42);     // std::experimental::putf
+
+print
+
+      The answer:   42
+
+The _width_ `5` can be parameterized:
+
+      cout << putf("The answer:%*d\n", 5, 42);  // same effect
+
+This mechanism is supported by both C and POSIX, but not Boost.Format.
+
 POSIX`[4]` style positional arguments are added because they are necessary
 for i18n.
+
+So the example above can be rewrote into:
+
+      cout << putf("The answer:%2$*1$d\n", 5, 42);  // same effect
 
 The `%n` specification is dropped because of the security problem (and its
 weird semantics); no known printf fork (in Java&trade;, Python, Boost.Format,
@@ -76,6 +95,42 @@ extensibility, this proposal distinguishes the arguments to be printed into:
    format specifications with a fitted length modifier, and
  - _potentially formattable_, which will be outputted by the `<<` operator
    with the translated formatting properties set up on the output stream.
+
+If an argument is internally formattable by a format specification, then C's
+formatting is fully supported.  For example, the following
+
+      cout << putf("The answer:% -.4d\n", 42);  // empty sign, left alignment, 4 minimal digits
+
+has the same printing result as
+
+      printf("The answer:% -.4d\n", 42);
+
+which gives
+
+      The answer: 0042
+
+, while Boost.Format gives
+
+      The answer: 42
+
+without an integer precision support.
+
+But if an argument is potentially formattable by a specification, the
+following
+
+      cout << putf("The answer:% -.4f\n", 42);  // expects a floating point
+
+has the same printing result as
+
+      cout << "The answer:" << left << setprecision(4) << 42 << "\n"
+
+which gives
+
+      The answer:42
+
+since there is no "empty sign" support in the streams library.
+
+A detailed description is available in [Formatting](#formatting).
 
 ## Technical Specifications
 
