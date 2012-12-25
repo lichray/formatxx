@@ -340,6 +340,39 @@ A sample implementation is available at
 One known defect in this implementation is that the `%a` and `%A` format
 specifications ignore the precision when printing a floating point argument.
 
+### Performance notes
+
+Here is a benchmark using Boost.Format's test code:
+
+Debug/normal:
+
+      printf time         :0.445312
+      ostream time        : 0.75,  = 1.68421 * printf 
+      format time         :4.24219,  = 9.52632 * printf ,  = 5.65625 * nullStream 
+      std::putf time      :1.85938,  = 4.17544 * printf ,  = 2.47917 * nullStream 
+
+Release/normal:
+
+      printf time         :0.40625
+      ostream time        :0.578125,  = 1.42308 * printf 
+      format time         :2.00781,  = 4.94231 * printf ,  = 3.47297 * nullStream 
+      std::putf time      :0.992188,  = 2.44231 * printf ,  = 1.71622 * nullStream 
+
+Environment:
+
+      FreeBSD 8.3-STABLE amd64
+      g++ 4.8.0 20121209
+      Boost 1.48.0
+
+*Explanations*:
+
+*"normal" means the locale is turned on.  However, I did not see a stable
+difference between `normal` and `no_locale`.*
+
+*The format object of boost can be
+reused, which brings a performance increase around %17.  Such a "feature"
+is not applicable to `printf` or `std::putf`, so I did not include them.*
+
 ## Future Issues
 
 Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?  If so, what
