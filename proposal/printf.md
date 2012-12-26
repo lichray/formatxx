@@ -265,10 +265,12 @@ Otherwise, the argument is _potentially formattable_.
 
 If an _internally formattable_ argument is an unsigned integer and the type
 hint is `d` or `i`, the argument is printed as if it is formatted by `snprintf`
-or a wide character equivalence given the same _flags_, _field-width_, and
+or a wide character equivalence, which conceptually uses a default padding
+character of `os.fill()`, given the same _flags_, _field-width_, and
 _precision_, if any, respectively, followed by a fitted length modifier, if
 needed, and a _type hint_ of `u`.  Otherwise, the argument is printed as if it
-is formatted by `snprintf` or a wide character equivalence given the same
+is formatted by `snprintf` or a wide character equivalence, which conceptually
+uses a default padding character of `os.fill()`, given the same
 _flags_, _field-width_, and _precision_, if any, respectively, followed by a
 fitted length modifier, if needed, and the same _type hint_.  *\[Note: `u`,
 `o`, `x`, `X` convert a signed argument to unsigned, while `d` and `i` do not
