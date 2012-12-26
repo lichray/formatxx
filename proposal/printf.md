@@ -1,7 +1,7 @@
 <!-- maruku -o printf.html printf.md -->
 
-	Document number:	Nnnnn=yy-nnnn
-	Date: 			2012-12-19
+	Document number:	Dnnnn=yy-nnnn
+	Date: 			2012-12-26
 	Project:		Programming Language C++, Library Working Group
 	Reply-to:		Zhihao Yuan <lichray at gmail dot com>
 
