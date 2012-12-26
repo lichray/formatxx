@@ -389,6 +389,20 @@ is not applicable to `printf` or `std::putf`, so I did not include them.*
 Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?  If so, what
 about an `sscanf` equivalence, and what its prototype should be?
 
+## Acknowledgments
+
+Andrew Sandoval, who gave me some suggestions on standard-compliance and
+error handling.
+
+Herb Sutter, who encouraged me to prepare the proposal, suggested me to add
+the positional arguments, and even provided many suggestions and corrections
+on the proposal.
+
+Many people in the "std-proposals" mailing list: Jeffrey Yasskin, who
+"enforced" me to add the positional arguments; Martin Desharnais, who gave me
+the link about how to implement one; and many others.
+
+
 ## References
 
 `[1]` The Boost Format library.
