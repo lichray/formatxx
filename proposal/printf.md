@@ -342,6 +342,23 @@ specifications ignore the precision when printing a floating point argument.
 
 ### Performance notes
 
+The additional runtime performance costs comparing with the streams library
+are caused by parsing the format string and creating the formatting guards (to
+restore the flags, precision, etc., after formatting each specifications,
+exception-safely).  To access a positional argument numbered _N_, _N - 1_
+**empty** recursions are required to locate the correct template instantiation.
+It's not counted into the performance cost, and the benchmark shown below
+indeed uses a positional format string.
+
+In the sample implementation, some extra copying are involved to emulate
+`printf`'s formatting features using streams.  However, the _internally
+formattable_ arguments are internally supported by the streams library, so a
+standard library implementation must be able to avoid these costs.  For
+example, to print a string with precision, the sample implementation has to
+copy the string, while `libstdc++` already has an internal interface
+`__ostream_insert()` which takes a size parameter.  These costs are not
+shown by the benchmark below, and Boost.Format does the same thing, actually.
+
 Here is a benchmark using Boost.Format's test code:
 
 Debug/normal:
