@@ -312,7 +312,7 @@ private:
 
 		if (pad.precision_ == 0 and t_ == 0)
 			return _output__(fl, pad, "");
-		if (pad.precision_ <= 1 )
+		if (pad.precision_ <= 1)
 			return _output__(fl, pad, t_);
 
 		int w = fl & os::hex ? _lexical_width<16>(t_) :
