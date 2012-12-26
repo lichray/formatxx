@@ -226,6 +226,9 @@ takes no effect to the printing, except:
  - `flags() & ios_base::unitbuf` may change the buffering behavior.
  - `fill()` works as the default padding character.
 
+The `std::sputf` overloads take the same arguments as `std::putf`, but return
+the formatted results as the objects of the `basic_string` instantiations.
+
 ### Error handling
 
 An output function of a return value of `std::putf` may encounter the
