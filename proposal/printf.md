@@ -308,7 +308,7 @@ Under the same preconditions, the _type hint_ characters and their effects on
 the output stream are:
 
  - **`d`** sets `ios_base::dec`.
- - **`i`** has no effect.
+ - **`i`** has no effect (`os.flags() & ios_base::basefield == 0`).
  - **`u`** sets `ios_base::dec`.
  - **`o`** sets `ios_base::oct`.
  - **`x`** sets `ios_base::hex`.
@@ -317,8 +317,8 @@ the output stream are:
  - **`F`** sets `ios_base::fixed | ios_base::uppercase`.
  - **`e`** sets `ios_base::scientific`.
  - **`E`** sets `ios_base::scientific | ios_base::uppercase`.
- - **`g`** unsets `ios_base::floatfield`.
- - **`G`** unsets `ios_base::floatfield` and sets `ios_base::uppercase`.
+ - **`g`** has no effect (`os.flags() & ios_base::floatfield == 0`)
+ - **`G`** sets `ios_base::uppercase`.
  - **`a`** sets `ios_base::fixed | ios_base::scientific`.
  - **`A`** sets `ios_base::fixed | ios_base::scientific | ios_base::uppercase`.
  - **`c`** has no effect.
