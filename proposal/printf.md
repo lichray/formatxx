@@ -346,10 +346,9 @@ specifications ignore the precision when printing a floating point argument.
 The additional runtime performance costs comparing with the streams library
 are caused by parsing the format string and creating the formatting guards (to
 restore the flags, precision, etc., after formatting each specifications,
-exception-safely).  To access a positional argument numbered _N_, _N - 1_
-**empty** recursions are required to locate the correct template instantiation.
-It's not counted into the performance cost, and the benchmark shown below
-indeed uses a positional format string.
+exception-safely).  In addition, to access a positional argument numbered
+_N_, _N - 1_ empty recursions are required to locate the correct template
+instantiation.
 
 In the sample implementation, some extra copying are involved to emulate
 `printf`'s formatting features using streams.  However, the _internally
@@ -360,21 +359,21 @@ copy the string, while `libstdc++` already has an internal interface
 `__ostream_insert()` which takes a size parameter.  These costs are not
 shown by the benchmark below, and Boost.Format does the same thing, actually.
 
-Here is a benchmark using Boost.Format's test code:
+Here is a benchmark using Boost.Format's test code, release mode:
 
-Debug/normal:
+Non-positional arguments/normal:
 
-      printf time         :0.445312
-      ostream time        : 0.75,  = 1.68421 * printf 
-      format time         :4.24219,  = 9.52632 * printf ,  = 5.65625 * nullStream 
-      std::putf time      :1.85938,  = 4.17544 * printf ,  = 2.47917 * nullStream 
+      printf time         :0.367188
+      ostream time        :0.59375,  = 1.61702 * printf 
+      format time         :2.125,  = 5.78723 * printf ,  = 3.57895 * nullStream 
+      std::putf time      :0.90625,  = 2.46809 * printf ,  = 1.52632 * nullStream 
 
-Release/normal:
+Positional arguments/normal:
 
-      printf time         :0.40625
-      ostream time        :0.578125,  = 1.42308 * printf 
-      format time         :2.00781,  = 4.94231 * printf ,  = 3.47297 * nullStream 
-      std::putf time      :0.992188,  = 2.44231 * printf ,  = 1.71622 * nullStream 
+      printf time         :0.414062
+      ostream time        :0.59375,  = 1.43396 * printf 
+      format time         :2.11719,  = 5.11321 * printf ,  = 3.56579 * nullStream 
+      std::putf time      :1.00781,  = 2.43396 * printf ,  = 1.69737 * nullStream 
 
 Environment:
 
@@ -383,6 +382,10 @@ Environment:
       Boost 1.48.0
 
 *Explanations*:
+
+*The two test cases take the same amount of arguments, and have the same
+formatting results.  The streams library has no such "positional arguments",
+so I reordered the arguments by hand. *
 
 *"normal" means the locale is turned on.  However, I did not see a stable
 difference between `normal` and `no_locale`.*
