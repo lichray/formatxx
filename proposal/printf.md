@@ -261,6 +261,11 @@ matched argument is _internally formattable_ if:
  - the type hint is `s`, and the argument is `const char*`, `const CharT*`,
    or `const signed char*`/`const unsigned char*` if `CharT` is `char`.
 
+*\[Note: An internally formattable argument has an `operator<<` overload,
+member or non-member, in the `<ostream>` header, and can be printted by
+`printf` without a type-unsafe conversion.  This note also applys to
+`Traits::int_type`, considering its underlying type.  --end note\]*
+
 Otherwise, the argument is _potentially formattable_.
 
 If an _internally formattable_ argument is an unsigned integer and the type
