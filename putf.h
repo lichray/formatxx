@@ -297,13 +297,6 @@ private:
 		return _output__(fl, pad, t_);
 	}
 
-	template <typename Allocator>
-	Stream& _with(fmtflags fl, padding pad,
-	    identity<std::basic_string<char_type, traits_type, Allocator>>) {
-		return _output__(fl, pad, pad.precision_ < t_.size() ?
-		    t_.substr(0, pad.precision_) : t_);
-	}
-
 	Stream& _with(fmtflags fl, padding pad, identity<char_type *>) {
 		return _output_chars__(fl, pad);
 	}

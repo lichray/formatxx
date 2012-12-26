@@ -35,7 +35,7 @@ The additional formatting features supported by `std::putf` are:
  - Empty sign `"% d"`.
  - Hexfloat with precision `"%.4a"`.
  - Integer with precision (minimal digits) `"%#5.2x"`.
- - String with precision (truncation) `"%.4s"`.
+ - String with precision (truncation, only for C-style strings) `"%.4s"`.
 
 ## Design Decisions
 
@@ -259,15 +259,9 @@ matched argument is _internally formattable_ if:
    `Traits::int_type`, or `signed char`/`unsigned char` if `CharT` is `char`,
    or
  - the type hint is `s`, and the argument is `const char*`, `const CharT*`,
-   or `const signed char*`/`const unsigned char*` if `CharT` is `char`, or
-   `basic_string<CharT, Traits, Allocator>`.  *\[TODO: detach the `CharT`
-   requirement to co-work with the "String Interoperation" proposal. \]*
+   or `const signed char*`/`const unsigned char*` if `CharT` is `char`.
 
 Otherwise, the argument is _potentially formattable_.
-
-If an _internally formattable_ argument is an object of an instantiation of
-`basic_string`, it is printed as if a return value of its `data()` member
-function is printed.
 
 If an _internally formattable_ argument is an unsigned integer and the type
 hint is `d` or `i`, the argument is printed as if it is formatted by `snprintf`
