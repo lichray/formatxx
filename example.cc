@@ -5,7 +5,6 @@
 
 using std::cout; using std::wcout;
 using std::experimental::putf;
-using std::experimental::sputf;
 
 int main() {
 	auto f = NAN;
@@ -23,9 +22,9 @@ int main() {
 	printf("%c %d %#.2f\n", 64, 64, 0.1);
 	wcout << putf(L"% 012d|%.f\n", 1234567, f);
 	wprintf(L"% 012d|%.f\n", 1234567, f);
-	wcout << sputf(L"%-+012d|%+014p\n", 1234567, &f);
+	wcout << putf(L"%-+012d|%+014p\n", 1234567, &f);
 	wprintf(L"%-+012d|%+014p\n", 1234567, &f);
-	cout << sputf("%12.4s|%14.2s|%.s\n", s.data(), s, s.data());
+	cout << putf("%12.4s|%14.2s|%.s\n", s.data(), s, s.data());
 	printf("%12.4s|%14.2s|%.s\n", s.data(), s.data(), s.data());
 	cout << putf("%*.*d|%#.*X|% 0*d\n", -12, 6, 64, 12, 64, -6, 64);
 	printf("%*.*d|%#.*X|% 0*d\n", -12, 6, 64, 12, 64, -6, 64);

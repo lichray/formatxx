@@ -49,23 +49,6 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
 }
 
-template <typename CharT, typename... T>
-inline auto sputf(CharT const *fmt, T const&... t)
-	-> std::basic_string<CharT> {
-	std::basic_ostringstream<CharT> out;
-	out << _fmt_put<CharT const *, T...>(fmt, fmt +
-	    std::char_traits<CharT>::length(fmt), t...);
-	return out.str();
-}
-
-template <typename CharT, typename Traits, typename Allocator, typename... T>
-inline auto sputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
-    T const&... t) -> std::basic_string<CharT, Traits> {
-	std::basic_ostringstream<CharT, Traits> out;
-	out << _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
-	return out.str();
-}
-
 template <typename T, typename Enable = void>
 struct _make_unsigned_fallback;
 
