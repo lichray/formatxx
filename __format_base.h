@@ -89,6 +89,18 @@ auto get(_fmt_put<Iter, T...> const& o)
 	return std::get<I>(o.item_);
 }
 
+template <size_t... I>
+struct _indices {};
+
+template <size_t N, size_t... I>
+struct _build_indices : _build_indices<N - 1, N - 1, I...> {};
+ 
+template <size_t... I>
+struct _build_indices<0, I...> : _indices<I...> {};
+ 
+template <typename Tuple>
+using _tuple_indices = _build_indices<std::tuple_size<Tuple>::value>;
+
 template <typename Stream>
 struct _unformatted_guard {
 	_unformatted_guard(Stream& s) :
