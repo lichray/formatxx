@@ -49,6 +49,36 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return { begin(fmt), end(fmt), t... };
 }
 
+template <typename CharT, typename Tuple, size_t... I>
+inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
+	-> _fmt_put<CharT const *,
+	typename std::remove_reference<decltype(get<I>(t))>::type...> {
+	return { fmt, fmt + std::char_traits<CharT>::length(fmt),
+		get<I>(t)... };
+}
+
+template <typename CharT, typename Traits, typename Allocator, typename Tuple,
+	size_t... I>
+inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
+    Tuple const& t, _indices<I...>)
+	-> _fmt_put<decltype(begin(fmt)),
+	typename std::remove_reference<decltype(get<I>(t))>::type...> {
+	return { begin(fmt), end(fmt), get<I>(t)... };
+}
+
+template <typename CharT, typename Tuple>
+inline auto vputf(CharT const *fmt, Tuple const& t)
+	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
+	return _vputf(fmt, t, _tuple_indices<Tuple>());
+}
+
+template <typename CharT, typename Traits, typename Allocator, typename Tuple>
+inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
+    Tuple const& t)
+	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
+	return _vputf(fmt, t, _tuple_indices<Tuple>());
+}
+
 template <typename T, typename Enable = void>
 struct _make_unsigned_fallback;
 
