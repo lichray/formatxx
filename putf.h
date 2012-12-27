@@ -39,14 +39,13 @@ namespace experimental {
 template <typename CharT, typename... T>
 inline auto putf(CharT const *fmt, T const&... t)
 	-> _fmt_put<CharT const *, T...> {
-	return _fmt_put<CharT const *, T...>(fmt, fmt +
-	    std::char_traits<CharT>::length(fmt), t...);
+	return { fmt, fmt + std::char_traits<CharT>::length(fmt), t... };
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename... T>
 inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     T const&... t) -> _fmt_put<decltype(begin(fmt)), T...> {
-	return _fmt_put<decltype(begin(fmt)), T...>(begin(fmt), end(fmt), t...);
+	return { begin(fmt), end(fmt), t... };
 }
 
 template <typename T, typename Enable = void>
@@ -193,7 +192,7 @@ class _outputter;
 template <typename Stream, typename T>
 inline auto _output(Stream& out, T const& t)
 	-> _outputter<Stream, T> {
-	return _outputter<Stream, T>(out, t);
+	return { out, t };
 }
 
 template <typename Stream, typename T>
@@ -349,7 +348,7 @@ inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args)
 template <size_t I, size_t N, typename CharT, typename Traits, size_t _I>
 inline auto _put_fmt(_put_fmtter<CharT, Traits, _I, N> const& o)
 	-> _put_fmtter<CharT, Traits, I, N> {
-	return _put_fmtter<CharT, Traits, I, N>(o);
+	return o;
 }
 
 enum class access {
