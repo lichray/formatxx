@@ -234,7 +234,7 @@ class _outputter {
 	typedef typename std::decay<T>::type Tp_;
 	typedef typename std::conditional<std::is_pointer<Tp_>::value,
 			typename std::add_pointer<
-			typename std::remove_cv<
+			typename std::remove_const<
 			typename std::remove_pointer<Tp_>::type>::type>::type,
 		Tp_>::type RealT;
 
