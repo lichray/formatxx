@@ -202,14 +202,6 @@ be mixed with any specifications.
         template <typename CharT, typename Traits, typename Allocator, typename... T>
         _Ts2_ putf(basic_string<CharT, Traits, Allocator> const& fmt, T const&... t);
 
-        template <typename CharT, typename... T>
-        auto sputf(CharT const *fmt, T const&... t)
-            -> basic_string<CharT>;
-
-        template <typename CharT, typename Traits, typename Allocator, typename... T>
-        auto sputf(basic_string<CharT, Traits, Allocator> const& fmt, T const&... t)
-            -> basic_string<CharT, Traits>;
-
         template <typename CharT, typename Traits, typename... T>
         auto operator<<(basic_ostream<CharT, Traits>& os, _Ts1_or_Ts2_ bundle)
             -> decltype(os);
@@ -225,9 +217,6 @@ takes no effect to the printing, except:
 
  - `flags() & ios_base::unitbuf` may change the buffering behavior.
  - `fill()` works as the default padding character.
-
-The `std::sputf` overloads take the same arguments as `std::putf`, but return
-the formatted results as the objects of the `basic_string` instantiations.
 
 ### Error handling
 
