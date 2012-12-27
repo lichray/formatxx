@@ -52,7 +52,8 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 template <typename CharT, typename Tuple, size_t... I>
 inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
 	-> _fmt_put<CharT const *,
-	typename std::remove_reference<decltype(get<I>(t))>::type...> {
+	typename std::remove_const<
+	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt),
 		get<I>(t)... };
 }
@@ -62,7 +63,8 @@ template <typename CharT, typename Traits, typename Allocator, typename Tuple,
 inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     Tuple const& t, _indices<I...>)
 	-> _fmt_put<decltype(begin(fmt)),
-	typename std::remove_reference<decltype(get<I>(t))>::type...> {
+	typename std::remove_const<
+	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
 	return { begin(fmt), end(fmt), get<I>(t)... };
 }
 
