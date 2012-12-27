@@ -44,7 +44,8 @@ inline auto putf(CharT const *fmt, T const&... t)
 
 template <typename CharT, typename Traits, typename Allocator, typename... T>
 inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
-    T const&... t) -> _fmt_put<decltype(begin(fmt)), T...> {
+    T const&... t)
+	-> _fmt_put<decltype(begin(fmt)), T...> {
 	return { begin(fmt), end(fmt), t... };
 }
 
