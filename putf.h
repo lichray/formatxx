@@ -81,6 +81,20 @@ inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return _vputf(fmt, t, _tuple_indices<Tuple>());
 }
 
+template <typename CharT, typename T, size_t N>
+inline auto vputf(CharT const *fmt, T const (&t)[N])
+	-> decltype(_vputf(fmt, t, _build_indices<N>())) {
+	return _vputf(fmt, t, _build_indices<N>());
+}
+
+template <typename CharT, typename Traits, typename Allocator, typename T,
+	size_t N>
+inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
+    T const (&t)[N])
+	-> decltype(_vputf(fmt, t, _build_indices<N>())) {
+	return _vputf(fmt, t, _build_indices<N>());
+}
+
 template <typename T, typename Enable = void>
 struct _make_unsigned_fallback;
 

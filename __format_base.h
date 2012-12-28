@@ -89,6 +89,12 @@ auto _get(_fmt_put<Iter, T...> const& o)
 	return std::get<I>(o.item_);
 }
 
+template <size_t I, typename T, size_t N>
+auto get(T (&a)[N]) -> T& {
+	static_assert(I < N, "out of range");
+	return a[I];
+}
+
 template <size_t... I>
 struct _indices {};
 
