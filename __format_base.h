@@ -74,7 +74,7 @@ struct _fmt_put {
 	}
 
 	template <size_t _I, typename _Iter, typename... _T>
-	friend auto get(_fmt_put<_Iter, _T...> const&)
+	friend auto _get(_fmt_put<_Iter, _T...> const&)
 		-> typename std::tuple_element<_I,
 		std::tuple<_T const&...>>::type;
 
@@ -84,7 +84,7 @@ private:
 };
 
 template <size_t I, typename Iter, typename... T>
-auto get(_fmt_put<Iter, T...> const& o)
+auto _get(_fmt_put<Iter, T...> const& o)
 	-> typename std::tuple_element<I, std::tuple<T const&...>>::type {
 	return std::get<I>(o.item_);
 }

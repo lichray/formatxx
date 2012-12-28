@@ -564,8 +564,8 @@ struct _put_fmtter {
 			}
 
 			auto sz = ti > 0 ?
-				_streamsize_or_not(get<S>(t)) :
-				_streamsize_or_not(get<I>(t));
+				_streamsize_or_not(_get<S>(t)) :
+				_streamsize_or_not(_get<I>(t));
 			if (!sz.first) {
 				out.setstate(os::failbit);
 				return out;
@@ -603,8 +603,8 @@ struct _put_fmtter {
 				}
 
 				auto sz = ti > 0 ?
-					_streamsize_or_not(get<S>(t)) :
-					_streamsize_or_not(get<I>(t));
+					_streamsize_or_not(_get<S>(t)) :
+					_streamsize_or_not(_get<I>(t));
 				if (!sz.first) {
 					out.setstate(os::failbit);
 					return out;
@@ -701,7 +701,7 @@ struct _put_fmtter {
 				return from<S + 1>(t);
 
 		typedef typename std::remove_reference<
-			decltype(get<S>(t))>::type type_i;
+			decltype(_get<S>(t))>::type type_i;
 
 		switch (tolower(out.narrow(*b, 0))) {
 		case 'p': case 's': case 'c':
@@ -726,13 +726,13 @@ struct _put_fmtter {
 
 		switch (sp) {
 		case spec::none: {
-			auto v = _output(out, get<S>(t));
+			auto v = _output(out, _get<S>(t));
 			return _put_fmt<I, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
 			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_int: {
-			auto v = _output(out, _to_int<Traits>(get<S>(t)));
+			auto v = _output(out, _to_int<Traits>(_get<S>(t)));
 			return _put_fmt<I, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
 			    v.with(fl, pad), ac).from(t);
@@ -740,12 +740,12 @@ struct _put_fmtter {
 		case spec::to_unsigned:
 			return _put_fmt<I, N>(_output(out,
 				    fl & os::dec ?
-				    _to_unsigned(_to_int<Traits>(get<S>(t))) :
-				    _to_unsigned(get<S>(t))).with(
+				    _to_unsigned(_to_int<Traits>(_get<S>(t))) :
+				    _to_unsigned(_get<S>(t))).with(
 				    fl, pad), ac).from(t);
 		case spec::to_char:
 			return _put_fmt<I, N>(_output(out,
-				    _to_char<Traits>(get<S>(t))).with(
+				    _to_char<Traits>(_get<S>(t))).with(
 				    fl, pad), ac).from(t);
 		default:
 			abort(); /* not reached */
@@ -753,7 +753,7 @@ struct _put_fmtter {
 		}
 
 		typedef typename std::remove_reference<
-			decltype(get<I>(t))>::type type_i;
+			decltype(_get<I>(t))>::type type_i;
 
 		switch (tolower(out.narrow(*b, 0))) {
 		case 'p': case 's': case 'c':
@@ -778,13 +778,13 @@ struct _put_fmtter {
 
 		switch (sp) {
 		case spec::none: {
-			auto v = _output(out, get<I>(t));
+			auto v = _output(out, _get<I>(t));
 			return _put_fmt<I + 1, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
 			    v.with(fl, pad), ac).from(t);
 		}
 		case spec::to_int: {
-			auto v = _output(out, _to_int<Traits>(get<I>(t)));
+			auto v = _output(out, _to_int<Traits>(_get<I>(t)));
 			return _put_fmt<I + 1, N>(pad.align_sign_ ?
 			    v.with_aligned_sign(fl, pad) :
 			    v.with(fl, pad), ac).from(t);
@@ -792,12 +792,12 @@ struct _put_fmtter {
 		case spec::to_unsigned:
 			return _put_fmt<I + 1, N>(_output(out,
 				    fl & os::dec ?
-				    _to_unsigned(_to_int<Traits>(get<I>(t))) :
-				    _to_unsigned(get<I>(t))).with(
+				    _to_unsigned(_to_int<Traits>(_get<I>(t))) :
+				    _to_unsigned(_get<I>(t))).with(
 				    fl, pad), ac).from(t);
 		case spec::to_char:
 			return _put_fmt<I + 1, N>(_output(out,
-				    _to_char<Traits>(get<I>(t))).with(
+				    _to_char<Traits>(_get<I>(t))).with(
 				    fl, pad), ac).from(t);
 		}
 		abort(); /* shut up gcc */
