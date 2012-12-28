@@ -74,9 +74,8 @@ struct _fmt_put {
 	}
 
 	template <size_t _I, typename _Iter, typename... _T>
-	friend auto _get(_fmt_put<_Iter, _T...> const&)
-		-> typename std::tuple_element<_I,
-		std::tuple<_T const&...>>::type;
+	friend auto _get(_fmt_put<_Iter, _T...> const& o)
+		-> decltype(std::get<_I>(o.item_));
 
 private:
 	std::pair<Iter, Iter>	iter_;
@@ -85,7 +84,7 @@ private:
 
 template <size_t I, typename Iter, typename... T>
 auto _get(_fmt_put<Iter, T...> const& o)
-	-> typename std::tuple_element<I, std::tuple<T const&...>>::type {
+	-> decltype(std::get<I>(o.item_)) {
 	return std::get<I>(o.item_);
 }
 
