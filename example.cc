@@ -28,7 +28,7 @@ int main() {
 	wprintf(L"%-+012d|%+014p\n", 1234567, &f);
 	cout << putf("%12.4s|%14.2s|%.s\n", s.data(), s, s.data());
 	printf("%12.4s|%14.2s|%.s\n", s.data(), s.data(), s.data());
-	std::array<int, 7> args = { -12, 6, 64, 12, 64, -6, 64 };
+	std::array<int, 7> args {{ -12, 6, 64, 12, 64, -6, 64 }};
 	cout << vputf("%*.*d|%#.*X|% 0*d\n", args);
 	printf("%*.*d|%#.*X|% 0*d\n", -12, 6, 64, 12, 64, -6, 64);
 	cout << putf("%1$d:%2$.*3$d:%4$*4$.*3$d\n", 12, 6, 2, 6);
