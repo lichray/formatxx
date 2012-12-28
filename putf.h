@@ -49,6 +49,15 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return { begin(fmt), end(fmt), t... };
 }
 
+#ifdef STRING_REF
+template <typename CharT, typename Traits, typename... T>
+inline auto putf(std::basic_string_ref<CharT, Traits> const& fmt,
+    T const&... t)
+	-> _fmt_put<decltype(begin(fmt)), T...> {
+	return { begin(fmt), end(fmt), t... };
+}
+#endif
+
 template <typename CharT, typename Tuple, size_t... I>
 inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
 	-> _fmt_put<CharT const *,
@@ -68,6 +77,18 @@ inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	return { begin(fmt), end(fmt), get<I>(t)... };
 }
 
+#ifdef STRING_REF
+template <typename CharT, typename Traits, typename Tuple,
+	size_t... I>
+inline auto _vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+    Tuple const& t, _indices<I...>)
+	-> _fmt_put<decltype(begin(fmt)),
+	typename std::remove_const<
+	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
+	return { begin(fmt), end(fmt), get<I>(t)... };
+}
+#endif
+
 template <typename CharT, typename Tuple>
 inline auto vputf(CharT const *fmt, Tuple const& t)
 	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
@@ -80,6 +101,15 @@ inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
 	return _vputf(fmt, t, _tuple_indices<Tuple>());
 }
+
+#ifdef STRING_REF
+template <typename CharT, typename Traits, typename Tuple>
+inline auto vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+    Tuple const& t)
+	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
+	return _vputf(fmt, t, _tuple_indices<Tuple>());
+}
+#endif
 
 template <typename CharT, typename T, size_t N>
 inline auto vputf(CharT const *fmt, T const (&t)[N])
@@ -94,6 +124,16 @@ inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 	-> decltype(_vputf(fmt, t, _build_indices<N>())) {
 	return _vputf(fmt, t, _build_indices<N>());
 }
+
+#ifdef STRING_REF
+template <typename CharT, typename Traits, typename T,
+	size_t N>
+inline auto vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+    T const (&t)[N])
+	-> decltype(_vputf(fmt, t, _build_indices<N>())) {
+	return _vputf(fmt, t, _build_indices<N>());
+}
+#endif
 
 template <typename T, typename Enable = void>
 struct _make_unsigned_fallback;
