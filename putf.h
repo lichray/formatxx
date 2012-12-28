@@ -188,7 +188,7 @@ template <typename Iter, typename Facet>
 inline int _parse_position(Iter& b, Iter& e, Facet const& fac) {
 	auto ob = b;
 	int n = _parse_int(b, e, fac);
-	if (n == 0 or *b != fac.widen('$')) {
+	if (n == 0 or b == e or *b != fac.widen('$')) {
 		b = ob;
 		return 0;
 	}
@@ -424,11 +424,18 @@ struct _put_fmtter<CharT, Traits, N, N> {
 		using std::begin; using std::end;
 
 		auto& b = begin(t);
+		if (b == end(t))
+			return out;
 		auto i = std::find(b, end(t), out.widen('%'));
 		out.write(&*b, i - begin(t));
 		if (i == end(t))
 			return out;
 		b = ++i;
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// only 1 trailing %
+			return out;
+		}
+
 		switch (out.narrow(*b, 0)) {
 		case '%':
 			++b;
@@ -511,6 +518,8 @@ struct _put_fmtter {
 		case jump::nope:;
 		}
 
+		if (b == end(t))
+			return out;
 		i = std::find(b, end(t), out.widen('%'));
 		out.write(&*b, i - begin(t));
 		if (i == end(t)) {
@@ -518,6 +527,10 @@ struct _put_fmtter {
 			return out;
 		}
 		b = ++i;
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// only 1 trailing %
+			return out;
+		}
 
 		if (*b == out.widen('%')) {
 			++b;
@@ -532,6 +545,11 @@ struct _put_fmtter {
 		ac = argN > 0 ? access::positional : access::sequential;
 
 		parse_flags:
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// incomplete spec
+			return out;
+		}
+
 		switch (out.narrow(*b, 0)) {
 		case '-':
 			_ignore_zero_padding();
@@ -557,8 +575,8 @@ struct _put_fmtter {
 		default:
 			goto parse_width;
 		}
-		if (++b != end(t))
-			goto parse_flags;
+		++b;
+		goto parse_flags;
 
 		parse_width:
 		if (isdigit(*b, out.getloc()))
@@ -599,10 +617,18 @@ struct _put_fmtter {
 		}
 
 		after_width:
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// incomplete spec
+			return out;
+		}
 
 		// precision defaults to zero with a single '.'
 		if (*b == out.widen('.')) {
-			if (*++b == out.widen('*')) {
+			if (++b == end(t)) {
+				out.setstate(os::failbit);
+				return out;
+			}
+			if (*b == out.widen('*')) {
 				++b;
 				ti = _parse_position(b, end(t), fac);
 				if (_mixing_access(ti)) {
@@ -634,17 +660,30 @@ struct _put_fmtter {
 		}
 
 		after_precision:
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// incomplete spec
+			return out;
+		}
 
 		// ignore all length modifiers
 		switch (auto c = out.narrow(*b, 0)) {
 		case 'h': case 'l':
-			c = out.narrow(*++b, 0);
+			if (++b == end(t)) {
+				out.setstate(os::failbit);
+				return out;
+			}
+			c = out.narrow(*b, 0);
 			if (c == 'h' or c == 'l')
 				++b;
 			break;
 		case 'j': case 'z': case 't': case 'L':
 			++b;
 			break;
+		}
+
+		if (b == end(t)) {
+			out.setstate(os::failbit);	// incomplete spec
+			return out;
 		}
 
 		// type-safe conversions are considered
