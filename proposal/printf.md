@@ -392,8 +392,7 @@ Do we need the `vprintf`-like interfaces, like, to take the tuples of
 arguments?  If so, use a special flag or just more function names?  For
 reference, check `std::experimental::vputf` in the sample implementation.
 
-Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?  If so, what
-about an `sscanf` equivalence, and what its prototype should be?
+Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?
 
 ## Acknowledgments
 
