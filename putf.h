@@ -51,7 +51,7 @@ inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 
 #ifdef STRING_REF
 template <typename CharT, typename Traits, typename... T>
-inline auto putf(std::basic_string_ref<CharT, Traits> const& fmt,
+inline auto putf(std::basic_string_ref<CharT, Traits> fmt,
     T const&... t)
 	-> _fmt_put<decltype(begin(fmt)), T...> {
 	return { begin(fmt), end(fmt), t... };
@@ -80,7 +80,7 @@ inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 #ifdef STRING_REF
 template <typename CharT, typename Traits, typename Tuple,
 	size_t... I>
-inline auto _vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+inline auto _vputf(std::basic_string_ref<CharT, Traits> fmt,
     Tuple const& t, _indices<I...>)
 	-> _fmt_put<decltype(begin(fmt)),
 	typename std::remove_const<
@@ -104,7 +104,7 @@ inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 
 #ifdef STRING_REF
 template <typename CharT, typename Traits, typename Tuple>
-inline auto vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+inline auto vputf(std::basic_string_ref<CharT, Traits> fmt,
     Tuple const& t)
 	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
 	return _vputf(fmt, t, _tuple_indices<Tuple>());
@@ -128,7 +128,7 @@ inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 #ifdef STRING_REF
 template <typename CharT, typename Traits, typename T,
 	size_t N>
-inline auto vputf(std::basic_string_ref<CharT, Traits> const& fmt,
+inline auto vputf(std::basic_string_ref<CharT, Traits> fmt,
     T const (&t)[N])
 	-> decltype(_vputf(fmt, t, _build_indices<N>())) {
 	return _vputf(fmt, t, _build_indices<N>());
