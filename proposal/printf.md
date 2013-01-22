@@ -1,9 +1,11 @@
 <!-- maruku -o printf.html printf.md -->
 
-	Document number:	Dnnnn=yy-nnnn
-	Date: 			2012-12-26
-	Project:		Programming Language C++, Library Working Group
-	Reply-to:		Zhihao Yuan <lichray at gmail dot com>
+<table><tbody>
+<tr><th>Doc. no.:</th>	<td>N3506</td></tr>
+<tr><th>Date:</th>	<td>2012-12-26</td></tr>
+<tr><th>Project:</th>	<td>Programming Language C++, Library Working Group</td></tr>
+<tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;lichray at gmail dot com&gt;</td></tr>
+</tbody></table>
 
 # A printf-like Interface for the Streams Library
 
