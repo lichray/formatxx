@@ -506,6 +506,7 @@ enum class jump {
 	positional_width,
 	positional_precision,
 	positional_format,
+	position_only,
 };
 
 template <typename CharT, typename Traits, size_t I, size_t N>
@@ -557,6 +558,8 @@ struct _put_fmtter {
 			goto positional_precision;
 		case jump::positional_format:
 			goto positional_format;
+		case jump::position_only:
+			goto position_only;
 		case jump::nope:;
 		}
 
@@ -579,12 +582,35 @@ struct _put_fmtter {
 			return _put_fmt<I, N>(out.put(out.widen('%')),
 			    ac).from(t);
 		}
-		argN = _parse_position(b, end(t), fac);
+
+		{
+			auto ob = b;
+			argN = _parse_int(b, end(t), fac);
+			if (argN == 0 or b == end(t) or
+			    (*b != fac.widen('$') and
+			     *b != fac.widen('%'))) {
+				argN = 0;
+				b = ob;
+			}
+		}
 		if (_mixing_access(argN)) {
 			out.setstate(os::failbit);
 			return out;
 		}
-		ac = argN > 0 ? access::positional : access::sequential;
+		if (argN > 0) {
+			ac = access::positional;
+			if (*b++ == out.widen('%')) {
+				jp = jump::position_only;
+				position_only:
+				if (argN - 1 != S)
+					return from<S + 1>(t);
+
+				return _put_fmt<I, N>(_output(out,
+					  _get<S>(t)).with(
+					  fl, pad), ac).from(t);
+			}
+		} else
+			ac = access::sequential;
 
 		parse_flags:
 		if (b == end(t)) {

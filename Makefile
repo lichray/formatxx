@@ -1,5 +1,5 @@
 # ccconf example CXX=g++48 CXXFLAGS+=-std=c++11 -Wall
-CXXFLAGS = -std=c++11 -Wall -g -I.
+CXXFLAGS = -std=c++11 -Wall -g -I. -I/usr/local/include
 CXX      = g++48  
 
 .PHONY : all clean
