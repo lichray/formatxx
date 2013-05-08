@@ -414,7 +414,8 @@ private:
 		if (*i != 0)
 			return _output__(fl, pad,
 			    std::basic_string<_CharT>(t_, n).data());
-		return _output__(fl, pad, t_);
+		else
+			return _output__(fl, pad, t_);
 	}
 
 	template <typename _T>
@@ -909,7 +910,8 @@ private:
 		if ((ac == access::positional and !i) or
 		    (ac == access::sequential and i > 0))
 			return true;
-		return false;
+		else
+			return false;
 	}
 
 	os&		out;
