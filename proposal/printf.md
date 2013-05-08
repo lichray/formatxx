@@ -1,8 +1,8 @@
 <!-- maruku -o printf.html printf.md -->
 
 <table><tbody>
-<tr><th>Doc. no.:</th>	<td>N3506</td></tr>
-<tr><th>Date:</th>	<td>2012-12-26</td></tr>
+<tr><th>Doc. no.:</th>	<td>Nnnnn</td></tr>
+<tr><th>Date:</th>	<td>2013-05-08</td></tr>
 <tr><th>Project:</th>	<td>Programming Language C++, Library Working Group</td></tr>
 <tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;lichray at gmail dot com&gt;</td></tr>
 </tbody></table>
