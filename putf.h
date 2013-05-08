@@ -404,9 +404,12 @@ private:
 	Stream& _output_chars__(fmtflags fl, padding pad) {
 		typedef typename std::remove_pointer<RealT>::type _CharT;
 
+		if (pad.precision_ < 0)
+			return _output__(fl, pad, t_);
+
 		size_t n = 0;
 		auto i = t_;
-		for (; *i and n < pad.precision_; ++i)
+		for (; *i and n < static_cast<size_t>(pad.precision_); ++i)
 			++n;
 		if (*i != 0)
 			return _output__(fl, pad,
