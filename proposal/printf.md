@@ -241,7 +241,17 @@ before the function returns.
 
 ### Formatting
 
-For a `basic_ostream<CharT, Traits>` and a given format description, the
+For a given format description, the matched argument is _potentially
+formattable_ if:
+
+ - the _flags_ contains **`+`**, or _space_, or both, but the type hint is not
+   one of `d`, `i`, `a`, `A`, `e`, `E`, `f`, `F`, `g`, and `G`, or
+ - the _flags_ contains **`#`**, but the type hint is not one of
+   `o`, `x`, `X`, `a`, `A`, `e`, `E`, `f`, `F`, `g`, and `G`, or
+ - the _flags_ contains **`0`**, but the type hint is not one of
+   `d`, `i`, `o`, `u`, `x`, `X`, `a`, `A`, `e`, `E`, `f`, `F`, `g`, and `G`.
+
+If not, regarding the output stream type `basic_ostream<CharT, Traits>`, the
 matched argument is _internally formattable_ if:
 
  - the type hint is `d`, `i`, `o`, `u`, `x`, or `X`, and the argument is an
