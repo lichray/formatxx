@@ -406,9 +406,6 @@ reference, check `std::experimental::vputf` in the sample implementation.
 
 Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?
 
-If the `string_ref` proposal gets approved, the overloads to take a
-`string_ref` as the format string will also be proposed here.
-
 ## Acknowledgments
 
 Andrew Sandoval, who gave me some suggestions on standard-compliance and
