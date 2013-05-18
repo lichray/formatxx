@@ -292,7 +292,8 @@ member is defaulted to the saved fill character of the output stream before
 entering the current output function.
 
 For a given format description, if the argument is _potentially formattable_,
-the _flag_ characters and their effects on the output stream are:
+for the following _flag_ characters, the argument is formatted as if the
+corresponding actions are taken on the output stream:
 
  - **`-`** sets `ios_base::left`.
  - **`+`** sets `ios_base::showpos`.
