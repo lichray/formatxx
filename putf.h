@@ -32,8 +32,7 @@
 #include <iosfwd>
 #include <sstream>
 
-namespace std {
-namespace experimental {
+namespace stdex {
 
 template <typename CharT, typename... T>
 inline auto putf(CharT const *fmt, T const&... t)
@@ -930,7 +929,6 @@ inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
 	return _put_fmt<0, sizeof...(T)>(out).from(t);
 }
 
-}
 }
 
 #endif

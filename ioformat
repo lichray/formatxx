@@ -26,4 +26,14 @@
 #ifndef _IOFORMAT
 #define _IOFORMAT 1
 #include "putf.h"
+
+namespace std {
+namespace experimental {
+
+using stdex::putf;
+using stdex::vputf;
+
+}
+}
+
 #endif

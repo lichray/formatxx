@@ -5,8 +5,7 @@
 #include <array>
 
 using std::cout; using std::wcout;
-using std::experimental::putf;
-using std::experimental::vputf;
+using namespace std::experimental;
 
 int main() {
 	auto f = NAN;
