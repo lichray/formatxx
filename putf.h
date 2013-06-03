@@ -29,8 +29,7 @@
 #include "__format_base.h"
 #include <algorithm>
 #include <cmath>
-#include <ios>
-#include <locale>
+#include <iosfwd>
 #include <sstream>
 
 namespace std {
