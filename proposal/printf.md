@@ -401,11 +401,18 @@ is not applicable to `printf` or `std::putf`, so I did not include them.*
 
 ## Future Issues
 
-Do we need the `vprintf`-like interfaces, like, to take the tuples of
+1. By overloading `std::printf` with a `basic_ostream` as the first
+argument, we can get an ADL-capable interface which is similiar to
+`std::getline`:
+<pre><code>  printf(std::wcout, L"%d\n", 42);</code></pre>
+I suggest to add this interface in addition to `std::putf`; one for
+`printf` transition, one for `boost::format` transition.
+
+2. Do we need the `vprintf`-like interfaces, like, to take the tuples of
 arguments?  If so, use a special flag or just more function names?  For
 reference, check `std::experimental::vputf` in the sample implementation.
 
-Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?
+3. Is an `scanf` equivalence, e.g., `std::getf`, worth to be added?
 
 ## Acknowledgments
 
@@ -419,6 +426,8 @@ on the proposal.
 Many people in the "std-proposals" mailing list: Jeffrey Yasskin, who
 "enforced" me to add the positional arguments; Martin Desharnais, who gave me
 the link about how to implement one; and many others.
+
+Roger Orr, who gave me the thought about the `std::getline`-like interface.
 
 
 ## References
