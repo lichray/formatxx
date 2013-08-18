@@ -1,5 +1,11 @@
 <!-- maruku -o printf.html printf.md -->
 
+<style type="text/css">
+pre code { display: block; margin-left: 2em; }
+ins { text-decoration: none; font-weight: bold; background-color: #A0FFA0 }
+del { text-decoration: line-through; background-color: #FFA0A0 }
+</style>
+
 <table><tbody>
 <tr><th>Doc. no.:</th>	<td>Nnnnn</td></tr>
 <tr><th>Date:</th>	<td>2013-05-08</td></tr>
@@ -14,7 +20,7 @@
 
 ## Overview
 
-      cout << putf("hello, %s\n", "world");
+    cout << putf("hello, %s\n", "world");
 
 Printf defines the most widely used syntax to format a text output.  It exists
 in C, Perl, Python and even Java&trade;, and is available from Qt to
@@ -56,16 +62,16 @@ syntax is:
 
 For example, both of the following
 
-      cout << format("The answer:%5d\n") % 42;  // boost.format
-      cout << putf("The answer:%5d\n", 42);     // std::experimental::putf
+    cout << format("The answer:%5d\n") % 42;  // boost.format
+    cout << putf("The answer:%5d\n", 42);     // std::experimental::putf
 
 print
 
-      The answer:   42
+    The answer:   42
 
 The _width_ `5` can be parameterized:
 
-      cout << putf("The answer:%*d\n", 5, 42);  // same effect
+    cout << putf("The answer:%*d\n", 5, 42);  // same effect
 
 This mechanism is supported by both C and POSIX, but not Boost.Format.
 
@@ -74,7 +80,7 @@ for i18n.
 
 So the example above can be rewrote into:
 
-      cout << putf("The answer:%2$*1$d\n", 5, 42);  // same effect
+    cout << putf("The answer:%2$*1$d\n", 5, 42);  // same effect
 
 The `%n` specification is dropped because of the security problem (and its
 weird semantics); no known printf fork (in Java&trade;, Python, Boost.Format,
@@ -103,34 +109,34 @@ extensibility, this proposal distinguishes the arguments to be printed into:
 If an argument is internally formattable by a format specification, then C's
 formatting is fully supported.  For example, the following
 
-      cout << putf("The answer:% -.4d\n", 42);  // empty sign, left alignment, 4 minimal digits
+    cout << putf("The answer:% -.4d\n", 42);  // empty sign, left alignment, 4 minimal digits
 
 has the same printing result as
 
-      printf("The answer:% -.4d\n", 42);
+    printf("The answer:% -.4d\n", 42);
 
 which gives
 
-      The answer: 0042
+    The answer: 0042
 
 , while Boost.Format gives
 
-      The answer: 42
+    The answer: 42
 
 without an integer precision support.
 
 But if an argument is potentially formattable by a specification, the
 following
 
-      cout << putf("The answer:% -.4f\n", 42);  // expects a floating point
+    cout << putf("The answer:% -.4f\n", 42);  // expects a floating point
 
 has the same printing result as
 
-      cout << "The answer:" << left << setprecision(4) << 42 << "\n"
+    cout << "The answer:" << left << setprecision(4) << 42 << "\n"
 
 which gives
 
-      The answer:42
+    The answer:42
 
 since there is no "empty sign" support in the streams library.
 
@@ -193,22 +199,22 @@ be mixed with any specifications.
 
 ### Header `<ioformat>`
 
-      namespace std {
-      namespace experimental {
+    namespace std {
+    namespace experimental {
 
-        // types _Ts1_ and _Ts2_ are sets of implementation types which are distinguishable for different T...
+      // types _Ts1_ and _Ts2_ are sets of implementation types which are distinguishable for different T...
 
-        template <typename CharT, typename... T>
-        _Ts1_ putf(CharT const *fmt, T const&... t);
+      template <typename CharT, typename... T>
+      _Ts1_ putf(CharT const *fmt, T const&... t);
 
-        template <typename CharT, typename Traits, typename Allocator, typename... T>
-        _Ts2_ putf(basic_string<CharT, Traits, Allocator> const& fmt, T const&... t);
+      template <typename CharT, typename Traits, typename Allocator, typename... T>
+      _Ts2_ putf(basic_string<CharT, Traits, Allocator> const& fmt, T const&... t);
 
-        template <typename CharT, typename Traits, typename... T>
-        auto operator<<(basic_ostream<CharT, Traits>& os, _Ts1_or_Ts2_ bundle)
-            -> decltype(os);
+      template <typename CharT, typename Traits, typename... T>
+      auto operator<<(basic_ostream<CharT, Traits>& os, _Ts1_or_Ts2_ bundle)
+          -> decltype(os);
 
-      }}
+    }}
 
 The output functions of the return values of `std::putf` do formatted output,
 but behavior like the _unformatted output functions_.  Specifically, `flags()`,
@@ -368,23 +374,23 @@ Here is a benchmark using Boost.Format's test code, release mode:
 
 Non-positional arguments/normal:
 
-      printf time         :0.367188
-      ostream time        :0.59375,  = 1.61702 * printf 
-      format time         :2.125,  = 5.78723 * printf ,  = 3.57895 * nullStream 
-      std::putf time      :0.90625,  = 2.46809 * printf ,  = 1.52632 * nullStream 
+    printf time         :0.367188
+    ostream time        :0.59375,  = 1.61702 * printf 
+    format time         :2.125,  = 5.78723 * printf ,  = 3.57895 * nullStream 
+    std::putf time      :0.90625,  = 2.46809 * printf ,  = 1.52632 * nullStream 
 
 Positional arguments/normal:
 
-      printf time         :0.414062
-      ostream time        :0.59375,  = 1.43396 * printf 
-      format time         :2.11719,  = 5.11321 * printf ,  = 3.56579 * nullStream 
-      std::putf time      :1.00781,  = 2.43396 * printf ,  = 1.69737 * nullStream 
+    printf time         :0.414062
+    ostream time        :0.59375,  = 1.43396 * printf 
+    format time         :2.11719,  = 5.11321 * printf ,  = 3.56579 * nullStream 
+    std::putf time      :1.00781,  = 2.43396 * printf ,  = 1.69737 * nullStream 
 
 Environment:
 
-      FreeBSD 8.3-STABLE amd64
-      g++ 4.8.0 20121209
-      Boost 1.48.0
+    FreeBSD 8.3-STABLE amd64
+    g++ 4.8.0 20121209
+    Boost 1.48.0
 
 *Explanations*:
 
@@ -404,7 +410,7 @@ is not applicable to `printf` or `std::putf`, so I did not include them.*
 1. By overloading `std::printf` with a `basic_ostream` as the first
 argument, we can get an ADL-capable interface which is similiar to
 `std::getline`:
-<pre><code>  printf(std::wcout, L"%d\n", 42);</code></pre>
+<pre><code>printf(std::wcout, L"%d\n", 42);</code></pre>
 I suggest to add this interface in addition to `std::putf`; one for
 `printf` transition, one for `boost::format` transition.
 
