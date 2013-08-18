@@ -28,12 +28,12 @@ int main() {
 	std::array<int, 7> args {{ -12, 6, 64, 12, 64, -6, 64 }};
 	cout << vputf("%*.*d|%#.*X|% 0*d\n", args);
 	printf("%*.*d|%#.*X|% 0*d\n", -12, 6, 64, 12, 64, -6, 64);
-	cout << putf("%1$d:%2$.*3$d:%4$*4$.*3$d\n", 12, 6, 2, 6);
+	printf(cout, "%1$d:%2$.*3$d:%4$*4$.*3$d\n", 12, 6, 2, 6);
 	printf("%1$d:%2$.*3$d:%4$*4$.*3$d\n", 12, 6, 2, 6);
 	cout << putf("%2$s %3% %1%%5%\n", 12, s, f, '\0', false);
 	cout << format("%2$s %3% %1%%5%\n") % 12 % s % f % '\0' % false;
 	freopen(nullptr, "w", stdout);
-	wcout << putf(L"% 012d|%.f\n", 1234567, f);
+	printf(wcout, std::wstring(L"% 012d|%.f\n"), 1234567, f);
 	wprintf(L"% 012d|%.f\n", 1234567, f);
 	wcout << vputf(L"%-+012d|%+014p\n", std::make_pair(1234567, &f));
 	wprintf(L"%-+012d|%+014p\n", 1234567, &f);
