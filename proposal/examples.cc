@@ -15,6 +15,8 @@ int main() {
 	cout << putf("The answer:%5d\n", 42);
 	cout << putf("The answer:%*d\n", 5, 42);
 	cout << putf("The answer:%2$*1$d\n", 5, 42);
+	cout << putf("%2$s: %1$s\n", 42, "The answer");
+	cout << putf("%2%: %1%\n", 42, "The answer");
 	cout << putf("The answer:% -.4d\n", 42);
 	printf("The answer:% -.4d\n", 42);
 	cout << format("The answer:% -.4d\n") % 42;

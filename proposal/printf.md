@@ -86,6 +86,18 @@ The `%n` specification is dropped because of the security problem (and its
 weird semantics); no known printf fork (in Java&trade;, Python, Boost.Format,
 etc.) supports it.
 
+However, Boost.Format's position-only specification `%`_`N`_`%` is supported.
+So instead of writing
+
+    cout << putf("%2$s: %1$s\n", 42, "The answer");
+
+, user can just say
+
+    cout << putf("%2%: %1%\n", 42, "The answer");
+
+Such a syntax has been widely used in industry, and does not break the
+printf-compatibility.
+
 C++ streams style error handling policy and type safety requirements are
 satisfied with the highest priority.  However, that makes the _length
 modifiers_ (`hh`, `h`, `l`, `ll`, `j`, `z`, `t`, `L`) unneeded.  The proposed
@@ -156,6 +168,10 @@ printed without formatting.
 
 A numbered format specification introduced by `"%`_`n`_`$"` matches the _n_th
 argument in the argument list, where _n_ is a decimal integer.
+
+A number-only format specification, `"%`_`n`_`%"`, behaviors as same as a
+numbered format specification `"%`_`n`_`$s"`, where `s` is a _type hint_
+described below.
 
 An unnumbered format specification introduced by `'%'` matches the first
 unmatched argument in the argument list.
