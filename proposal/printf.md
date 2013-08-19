@@ -8,7 +8,7 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 
 <table><tbody>
 <tr><th>Doc. no.:</th>	<td>Nnnnn</td></tr>
-<tr><th>Date:</th>	<td>2013-05-08</td></tr>
+<tr><th>Date:</th>	<td>2013-08-18</td></tr>
 <tr><th>Project:</th>	<td>Programming Language C++, Library Working Group</td></tr>
 <tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;lichray at gmail dot com&gt;</td></tr>
 </tbody></table>
@@ -17,6 +17,12 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 
 * TOC
 {:toc}
+
+## Changes since N3506
+
+ - Support Boost.Format's simple positional syntax (`%1%`, `%2%` ...).
+ - Cover the cornor cases "not-mentioned" by the C standard.
+ - Mention the function style syntax suggested by BSI in "Future Issues".
 
 ## Overview
 
