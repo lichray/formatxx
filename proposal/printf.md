@@ -7,13 +7,13 @@ del { text-decoration: line-through; background-color: #FFA0A0 }
 </style>
 
 <table><tbody>
-<tr><th>Doc. no.:</th>	<td>Nnnnn</td></tr>
+<tr><th>Doc. no.:</th>	<td>N3716</td></tr>
 <tr><th>Date:</th>	<td>2013-08-18</td></tr>
 <tr><th>Project:</th>	<td>Programming Language C++, Library Working Group</td></tr>
 <tr><th>Reply-to:</th>	<td>Zhihao Yuan &lt;lichray at gmail dot com&gt;</td></tr>
 </tbody></table>
 
-# A printf-like Interface for the Streams Library
+# A printf-like Interface for the Streams Library (revision 1)
 
 * TOC
 {:toc}
