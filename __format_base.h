@@ -61,7 +61,7 @@ struct _accept_narrow<char, unsigned char> : std::true_type {
 
 template <typename Iter, typename... T>
 struct _fmt_put {
-	_fmt_put(Iter const& it1, Iter const& it2, T const&... t) :
+	_fmt_put(Iter it1, Iter it2, T const&... t) :
 		iter_(it1, it2), item_(t...) {}
 
 	Iter& begin() {
