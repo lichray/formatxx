@@ -377,6 +377,8 @@ private:
 	Stream& _output_int__(fmtflags fl, padding pad) {
 		using os = std::basic_ostringstream<char_type, traits_type>;
 
+		if (fl & os::showbase and fl & os::oct and pad.precision_ < 1)
+			pad.precision_ = 1;
 		if (pad.precision_ == 0 and t_ == 0)
 			return _output__(fl, pad, "");
 		if (pad.precision_ <= 1)
