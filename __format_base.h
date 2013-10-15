@@ -108,17 +108,19 @@ using _tuple_indices = _build_indices<std::tuple_size<Tuple>::value>;
 template <typename Stream>
 struct _unformatted_guard {
 	_unformatted_guard(Stream& s) :
-		stream_(s), flags_(s.flags()), width_(s.width(0)) {}
+		stream_(s), ok_(s), flags_(s.flags()), width_(s.width(0)) {}
 	~_unformatted_guard() {
 		stream_.width(width_);
 		stream_.flags(flags_);
 	}
 
-	_unformatted_guard(_unformatted_guard const&) = delete;
-	_unformatted_guard& operator=(_unformatted_guard const&) = delete;
+	explicit operator bool() const {
+		return bool(ok_);
+	}
 
 private:
 	Stream&				stream_;
+	typename Stream::sentry		ok_;
 	decltype(stream_.flags())	flags_;
 	decltype(stream_.width())	width_;
 };

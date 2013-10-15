@@ -953,8 +953,12 @@ template <typename CharT, typename Traits, typename Iter, typename... T>
 inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
     _fmt_put<Iter, T...> t) -> decltype(out)
 {
-	_unformatted_guard<decltype(out)> _(out);
-	return _put_fmt<0, sizeof...(T)>(out).from(t);
+
+	_unformatted_guard<std::basic_ostream<CharT, Traits>> ok(out);
+
+	if (ok)
+		_put_fmt<0, sizeof...(T)>(out).from(t);
+	return out;
 }
 
 }
