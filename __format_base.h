@@ -137,6 +137,15 @@ inline int _lexical_width(Int i) {
 	return n;
 }
 
+template <typename CharT, typename Facet>
+inline char _to_narrow_digit(CharT ch, Facet const& fac) {
+	char c = fac.narrow(ch, 0);
+	if ('0' <= c and c <= '9')
+		return c;
+	else
+		return 0;
+}
+
 }
 
 #endif

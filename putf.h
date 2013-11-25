@@ -215,9 +215,9 @@ inline auto _streamsize_or_not(T t,
 template <typename Iter, typename Facet>
 inline int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 	int n = 0;
-	for (; b != e and fac.is(std::ctype_base::digit, *b); ++b) {
+	for (char c; b != e and (c = _to_narrow_digit(*b, fac)); ++b) {
 		n *= 10;
-		n += fac.narrow(*b, 0) - '0';
+		n += c - '0';
 	}
 	return n;
 }
@@ -649,7 +649,7 @@ struct _put_fmtter {
 		goto parse_flags;
 
 		parse_width:
-		if (isdigit(*b, out.getloc()))
+		if (_to_narrow_digit(*b, fac))
 			out.width(_parse_int(b, end(t), fac));
 		else if (*b == out.widen('*')) {
 			++b;
