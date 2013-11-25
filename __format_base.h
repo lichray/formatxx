@@ -82,13 +82,13 @@ private:
 };
 
 template <size_t I, typename Iter, typename... T>
-auto _get(_fmt_put<Iter, T...> const& o)
+inline auto _get(_fmt_put<Iter, T...> const& o)
 	-> decltype(std::get<I>(o.item_)) {
 	return std::get<I>(o.item_);
 }
 
 template <size_t I, typename T, size_t N>
-auto get(T (&a)[N]) -> T& {
+inline auto get(T (&a)[N]) -> T& {
 	static_assert(I < N, "out of range");
 	return a[I];
 }
@@ -126,7 +126,7 @@ private:
 };
 
 template <int Base, typename Int>
-int _lexical_width(Int i) {
+inline int _lexical_width(Int i) {
 	if (i == 0)
 		return 1;
 	int n = 0;

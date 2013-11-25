@@ -213,7 +213,7 @@ inline auto _streamsize_or_not(T t,
 }
 
 template <typename Iter, typename Facet>
-int _parse_int(Iter& b, Iter& e, Facet const& fac) {
+inline int _parse_int(Iter& b, Iter& e, Facet const& fac) {
 	int n = 0;
 	for (; b != e and fac.is(std::ctype_base::digit, *b); ++b) {
 		n *= 10;
