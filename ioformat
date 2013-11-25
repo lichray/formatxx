@@ -30,24 +30,13 @@
 namespace std {
 namespace experimental {
 
-using stdex::putf;
-using stdex::vputf;
-
 /* ADL interfaces */
 
 template <typename CharT, typename Traits, typename... T>
-inline auto printf(std::basic_ostream<CharT, Traits>& out, CharT const *fmt,
+inline auto putf(std::basic_ostream<CharT, Traits>& out, CharT const *fmt,
     T const&... t) -> decltype(out)
 {
-	return out << putf(fmt, t...);
-}
-
-template <typename CharT, typename Traits, typename Allocator, typename... T>
-inline auto printf(std::basic_ostream<CharT, Traits>& out,
-    std::basic_string<CharT, Traits, Allocator> const& fmt,
-    T const&... t) -> decltype(out)
-{
-	return out << putf(fmt, t...);
+	return out << stdex::putf(fmt, t...);
 }
 
 }
