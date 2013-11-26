@@ -204,10 +204,7 @@ inline auto _streamsize_or_not(T const&,
 	return { false, 0 };
 }
 
-template <typename T>
-inline auto _streamsize_or_not(T t,
-    typename std::enable_if<std::is_convertible<T,
-    std::streamsize>::value>::type* = 0)
+inline auto _streamsize_or_not(std::streamsize t)
 	-> std::pair<bool, std::streamsize> {
 	return { true, t };
 }
