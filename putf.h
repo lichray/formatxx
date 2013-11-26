@@ -171,7 +171,7 @@ inline auto _to_char(T t,
     typename std::enable_if<std::is_same<
     typename Traits::int_type, T>::value>::type* = 0)
 	-> typename Traits::char_type {
-	return t;
+	return Traits::to_char_type(t);
 }
 
 template <typename Traits, typename T>
@@ -187,7 +187,7 @@ inline auto _to_int(T t,
     typename std::enable_if<std::is_same<
     typename Traits::char_type, T>::value>::type* = 0)
 	-> typename Traits::int_type {
-	return t;
+	return Traits::to_int_type(t);
 }
 
 template <typename Traits, typename T>
