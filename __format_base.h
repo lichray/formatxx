@@ -32,6 +32,8 @@
 
 namespace stdex {
 
+using std::get;
+
 template <typename T>
 using identity = std::common_type<T>;
 
@@ -74,7 +76,7 @@ struct _fmt_put {
 
 	template <size_t _I, typename _Iter, typename... _T>
 	friend auto _get(_fmt_put<_Iter, _T...> const& o)
-		-> decltype(std::get<_I>(o.item_));
+		-> decltype(get<_I>(o.item_));
 
 private:
 	std::pair<Iter, Iter>	iter_;
@@ -83,8 +85,8 @@ private:
 
 template <size_t I, typename Iter, typename... T>
 inline auto _get(_fmt_put<Iter, T...> const& o)
-	-> decltype(std::get<I>(o.item_)) {
-	return std::get<I>(o.item_);
+	-> decltype(get<I>(o.item_)) {
+	return get<I>(o.item_);
 }
 
 template <size_t I, typename T, size_t N>
