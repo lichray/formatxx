@@ -61,30 +61,32 @@ struct _accept_narrow<char, unsigned char> : std::true_type {
 	typedef int		int_type;
 };
 
-template <typename Iter, typename... T>
+template <typename CharT, typename... T>
 struct _fmt_put {
-	_fmt_put(Iter it1, Iter it2, T const&... t) :
+	typedef CharT const*	iterator;
+
+	_fmt_put(iterator it1, iterator it2, T const&... t) :
 		iter_(it1, it2), item_(t...) {}
 
-	Iter& begin() {
+	iterator& begin() {
 		return iter_.first;
 	}
 
-	Iter& end() {
+	iterator& end() {
 		return iter_.second;
 	}
 
-	template <size_t _I, typename _Iter, typename... _T>
-	friend auto _get(_fmt_put<_Iter, _T...> const& o)
+	template <size_t _I, typename _CharT, typename... _T>
+	friend auto _get(_fmt_put<_CharT, _T...> const& o)
 		-> decltype(get<_I>(o.item_));
 
 private:
-	std::pair<Iter, Iter>	iter_;
-	std::tuple<T const&...>	item_;
+	std::pair<iterator, iterator>	iter_;
+	std::tuple<T const&...>		item_;
 };
 
-template <size_t I, typename Iter, typename... T>
-inline auto _get(_fmt_put<Iter, T...> const& o)
+template <size_t I, typename CharT, typename... T>
+inline auto _get(_fmt_put<CharT, T...> const& o)
 	-> decltype(get<I>(o.item_)) {
 	return get<I>(o.item_);
 }

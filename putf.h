@@ -36,20 +36,20 @@ namespace stdex {
 
 template <typename CharT, typename... T>
 inline auto putf(CharT const *fmt, T const&... t)
-	-> _fmt_put<CharT const *, T...> {
+	-> _fmt_put<CharT, T...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt), t... };
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename... T>
 inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     T const&... t)
-	-> _fmt_put<decltype(begin(fmt)), T...> {
-	return { begin(fmt), end(fmt), t... };
+	-> _fmt_put<CharT, T...> {
+	return { fmt.data(), fmt.data() + fmt.size(), t... };
 }
 
 template <typename CharT, typename Tuple, size_t... I>
 inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
-	-> _fmt_put<CharT const *,
+	-> _fmt_put<CharT,
 	typename std::remove_const<
 	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt),
@@ -60,10 +60,10 @@ template <typename CharT, typename Traits, typename Allocator, typename Tuple,
 	size_t... I>
 inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     Tuple const& t, _indices<I...>)
-	-> _fmt_put<decltype(begin(fmt)),
+	-> _fmt_put<CharT,
 	typename std::remove_const<
 	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
-	return { begin(fmt), end(fmt), get<I>(t)... };
+	return { fmt.data(), fmt.data() + fmt.size(), get<I>(t)... };
 }
 
 template <typename CharT, typename Tuple>
@@ -405,8 +405,8 @@ struct _put_fmtter<CharT, Traits, N, N> {
 		out.setstate(os::failbit);		// too many *
 	}
 
-	template <typename Iter, typename... T>
-	os& from(_fmt_put<Iter, T...>& t)
+	template <typename... T>
+	os& from(_fmt_put<CharT, T...>& t)
 	{
 		using std::begin; using std::end;
 
@@ -474,16 +474,16 @@ struct _put_fmtter {
 		out(o.out), ac(o.ac), jp(o.jp), sp(o.sp),
 		fl(o.fl), pad(o.pad), argN(o.argN) {}
 
-	template <size_t S = 0, typename Iter, typename... T>
-	auto from(_fmt_put<Iter, T...>&, size_t = 0)
+	template <size_t S = 0, typename... T>
+	auto from(_fmt_put<CharT, T...>&, size_t = 0)
 		-> typename std::enable_if<S == N, os&>::type
 	{
 		out.setstate(os::failbit);
 		return out;
 	}
 
-	template <size_t S = 0, typename Iter, typename... T>
-	auto from(_fmt_put<Iter, T...>& t, size_t ti = 0)
+	template <size_t S = 0, typename... T>
+	auto from(_fmt_put<CharT, T...>& t, size_t ti = 0)
 		-> typename std::enable_if<S < N, os&>::type
 	{
 		using std::begin; using std::end;
@@ -892,11 +892,10 @@ private:
 	size_t		argN = 0;
 };
 
-template <typename CharT, typename Traits, typename Iter, typename... T>
+template <typename CharT, typename Traits, typename... T>
 inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
-    _fmt_put<Iter, T...> t) -> decltype(out)
+    _fmt_put<CharT, T...> t) -> decltype(out)
 {
-
 	_unformatted_guard<std::basic_ostream<CharT, Traits>> ok(out);
 
 	if (ok)
