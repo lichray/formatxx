@@ -1,14 +1,11 @@
-# ccconf example CXX=g++48 CXXFLAGS+=-std=c++11 -Wall
+# ccconf example CXX=g++49 CXXFLAGS+=-std=c++11 -Wall
 CXXFLAGS = -std=c++11 -Wall -g -I. -I/usr/local/include
-CXX      = g++48  
+CXX      = g++49
 
 .PHONY : all clean
 all : example
 clean :
-	rm -f example example.o tags
-
-tags : *.h example.cc 
-	ctags *.h example.cc 
+	rm -f example example.o
 
 example : example.o
 	${CXX} ${LDFLAGS} -o example example.o
