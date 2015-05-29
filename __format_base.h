@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, 2013 Zhihao Yuan.  All rights reserved.
+ * Copyright (c) 2012, 2013, 2015 Zhihao Yuan.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -27,6 +27,7 @@
 #define ___FORMAT_BASE_H 1
 
 #include <cstdlib>
+#include <cassert>
 #include <stdexcept>
 #include <tuple>
 
@@ -85,10 +86,62 @@ private:
 	std::tuple<T const&...>		item_;
 };
 
+template <typename>
+struct _tuple_size;
+
+template <typename CharT, typename... T>
+struct _tuple_size<_fmt_put<CharT, T...>> :
+	std::integral_constant<int, sizeof...(T)> {};
+
 template <size_t I, typename CharT, typename... T>
 inline auto _get(_fmt_put<CharT, T...> const& o)
 	-> decltype(get<I>(o.item_)) {
 	return get<I>(o.item_);
+}
+
+template <int Low, int High, int Mid = (Low + High) / 2, typename = void>
+struct _visit1_at;
+
+template <int Low, int High, int Mid>
+struct _visit1_at<Low, High, Mid, std::enable_if_t<(Low > High)>>
+{
+	template <typename... T>
+	static decltype(auto) apply(int, T&&...) {}
+};
+
+template <int Mid>
+struct _visit1_at<Mid, Mid, Mid>
+{
+	template <typename Tuple, typename F>
+	static decltype(auto) apply(int n, F&& f, Tuple&& tp) {
+		return std::forward<F>(f)(
+		    _get<Mid - 1>(std::forward<Tuple>(tp)));
+	}
+};
+
+template <int Low, int High, int Mid>
+struct _visit1_at<Low, High, Mid, std::enable_if_t<(Low < High)>>
+{
+	template <typename... T>
+	static decltype(auto) apply(int n, T&&... t) {
+		if (n < Mid)
+			return _visit1_at<Low, Mid - 1>::apply(n,
+			    std::forward<T>(t)...);
+		else if (n == Mid)
+			return _visit1_at<Mid, Mid>::apply(n,
+			    std::forward<T>(t)...);
+		else
+			return _visit1_at<Mid + 1, High>::apply(n,
+			    std::forward<T>(t)...);
+	}
+};
+
+template <typename Tuple, typename F>
+inline decltype(auto) visit1_at(int n, F&& f, Tuple&& tp) {
+	constexpr int m = _tuple_size<std::decay_t<Tuple>>::value;
+	assert(0 < n and n <= m);
+	return _visit1_at<1, m>::apply(n, std::forward<F>(f),
+	    std::forward<Tuple>(tp));
 }
 
 template <size_t... I>

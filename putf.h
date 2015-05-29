@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2012, 2013 Zhihao Yuan.  All rights reserved.
+ * Copyright (c) 2012, 2013, 2015 Zhihao Yuan.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -370,72 +370,14 @@ private:
 	}
 };
 
-template <typename CharT, typename Traits, size_t I, size_t N>
+template <typename CharT, typename Traits>
 struct _put_fmtter;
 
-template <size_t I, size_t N, typename CharT, typename Traits, typename... Args>
+template <typename CharT, typename Traits, typename... Args>
 inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args)
-	-> _put_fmtter<CharT, Traits, I, N> {
-	return _put_fmtter<CharT, Traits, I, N>(out, args...);
+	-> _put_fmtter<CharT, Traits> {
+	return _put_fmtter<CharT, Traits>(out, args...);
 }
-
-template <size_t I, size_t N, typename CharT, typename Traits, size_t _I>
-inline auto _put_fmt(_put_fmtter<CharT, Traits, _I, N> const& o)
-	-> _put_fmtter<CharT, Traits, I, N> {
-	return o;
-}
-
-enum class access {
-	unknown,
-	sequential,
-	positional,
-};
-
-template <typename CharT, typename Traits, size_t N>
-struct _put_fmtter<CharT, Traits, N, N> {
-	template <typename _CharT, typename _Traits, size_t _I, size_t _N>
-	friend struct _put_fmtter;
-
-	using os = std::basic_ostream<CharT, Traits>;
-
-	explicit _put_fmtter(os& s, access = access::unknown) : out(s) {}
-
-	template <size_t _I>
-	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) : out(o.out) {
-		out.setstate(os::failbit);		// too many *
-	}
-
-	template <typename... T>
-	os& from(_fmt_put<CharT, T...>& t)
-	{
-		using std::begin; using std::end;
-
-		auto& b = begin(t);
-		if (b == end(t))
-			return out;
-		auto i = std::find(b, end(t), out.widen('%'));
-		out.write(&*b, i - begin(t));
-		if (i == end(t))
-			return out;
-		b = ++i;
-		if (b == end(t)) {
-			out.setstate(os::failbit);	// only 1 trailing %
-			return out;
-		}
-
-		switch (out.narrow(*b, 0)) {
-		case '%':
-			++b;
-			return _put_fmt<N, N>(out.put(out.widen('%'))).from(t);
-		default:
-			out.setstate(os::failbit);	// too few arguments
-			return out;
-		}
-	}
-
-private:
-	os& out;
-};
 
 enum class spec {
 	none,
@@ -444,69 +386,23 @@ enum class spec {
 	to_int,
 };
 
-enum class jump {
-	nope,
-	after_width,
-	after_precision,
-	positional_width,
-	positional_precision,
-	positional_format,
-	position_only,
-};
-
-template <typename CharT, typename Traits, size_t I, size_t N>
+template <typename CharT, typename Traits>
 struct _put_fmtter {
-	template <typename _CharT, typename _Traits, size_t _I, size_t _N>
-	friend struct _put_fmtter;
-
 	using os = std::basic_ostream<CharT, Traits>;
 
 	typedef typename os::fmtflags	fmtflags;
 	typedef _padding<CharT>		padding;
 
-	explicit _put_fmtter(os& s, access a = access::unknown) :
-		out(s), ac(a), fl(_flags_for_output(out)), pad(out) {
-		pad.precision_ = -1;
-	}
+	explicit _put_fmtter(os& s) : out(s), argN(0) {}
 
-	template <size_t _I>
-	_put_fmtter(_put_fmtter<CharT, Traits, _I, N> const& o) :
-		out(o.out), ac(o.ac), jp(o.jp), sp(o.sp),
-		fl(o.fl), pad(o.pad), argN(o.argN) {}
-
-	template <size_t S = 0, typename... T>
-	auto from(_fmt_put<CharT, T...>&, size_t = 0)
-		-> typename std::enable_if<S == N, os&>::type
-	{
-		out.setstate(os::failbit);
-		return out;
-	}
-
-	template <size_t S = 0, typename... T>
-	auto from(_fmt_put<CharT, T...>& t, size_t ti = 0)
-		-> typename std::enable_if<S < N, os&>::type
+	template <typename... T>
+	auto from(_fmt_put<CharT, T...>& t) -> os&
 	{
 		using std::begin; using std::end;
 
 		auto& b = begin(t);
 		auto i = b;
 		auto& fac = std::use_facet<std::ctype<CharT>>(out.getloc());
-
-		switch (jp) {
-		case jump::after_width:
-			goto after_width;
-		case jump::after_precision:
-			goto after_precision;
-		case jump::positional_width:
-			goto positional_width;
-		case jump::positional_precision:
-			goto positional_precision;
-		case jump::positional_format:
-			goto positional_format;
-		case jump::position_only:
-			goto position_only;
-		case jump::nope:;
-		}
 
 		if (b == end(t))
 			return out;
@@ -524,38 +420,56 @@ struct _put_fmtter {
 
 		if (*b == out.widen('%')) {
 			++b;
-			return _put_fmt<I, N>(out.put(out.widen('%')),
-			    ac).from(t);
+			out.put(out.widen('%'));
+			return from(t);
 		}
+
+		auto sp = spec::none;
+		auto fl = _flags_for_output(out);
+		auto pad = padding(out);
+		pad.precision_ = -1;
+
+		auto _ignore_zero_padding = [&] {
+			fl &= ~os::internal;
+			pad.fill_ = out.fill();
+		};
+
+		auto _bad_indexing = [&](int i) {
+			if (sequential)
+				return i != 0 or argN >= int(sizeof...(T));
+			else
+				return i == 0 or i > int(sizeof...(T));
+		};
 
 		{
 			auto ob = b;
-			argN = _parse_int(b, end(t), fac);
-			if (argN == 0 or b == end(t) or
+			int ti = _parse_int(b, end(t), fac);
+			if (ti == 0 or b == end(t) or
 			    (*b != fac.widen('$') and
 			     *b != fac.widen('%'))) {
-				argN = 0;
+				ti = 0;
 				b = ob;
 			}
-		}
-		if (_mixing_access(argN)) {
-			out.setstate(os::failbit);
-			return out;
-		}
-		if (argN > 0) {
-			ac = access::positional;
-			if (*b++ == out.widen('%')) {
-				jp = jump::position_only;
-				position_only:
-				if (argN - 1 != S)
-					return from<S + 1>(t);
-
-				return _put_fmt<I, N>(_output(out,
-					  _get<S>(t)).with(
-					  fl, pad), ac).from(t);
+			if (argN == 0)	// access is not known yet
+				sequential = (ti == 0);
+			if (_bad_indexing(ti)) {
+				out.setstate(os::failbit);
+				return out;
 			}
-		} else
-			ac = access::sequential;
+			if (ti == 0)
+				++argN;
+			else
+			{
+				argN = ti;
+
+				if (*b++ == out.widen('%')) {
+					visit1_at(argN, [&](auto&& x)
+					    { _output(out, x).with(fl, pad); },
+					    t);
+					return from(t);
+				}
+			}
+		}
 
 		parse_flags:
 		if (b == end(t)) {
@@ -596,26 +510,21 @@ struct _put_fmtter {
 			out.width(_parse_int(b, end(t), fac));
 		else if (*b == out.widen('*')) {
 			++b;
-			ti = _parse_position(b, end(t), fac);
-			if (_mixing_access(ti)) {
+			int ti = _parse_position(b, end(t), fac);
+			if (_bad_indexing(ti)) {
 				out.setstate(os::failbit);
 				return out;
 			}
-			if (ti > 0) {
-				jp = jump::positional_width;
-				positional_width:
-				if (ti - 1 != S)
-					return from<S + 1>(t, ti);
-			}
+			if (ti == 0)
+				ti = argN++;
 
-			auto sz = ti > 0 ?
-				_streamsize_or_not(_get<S>(t)) :
-				_streamsize_or_not(_get<I>(t));
+			std::pair<bool, std::streamsize> sz;
+			visit1_at(ti, [&](auto&& x)
+			    { sz = _streamsize_or_not(x); }, t);
 			if (!sz.first) {
 				out.setstate(os::failbit);
 				return out;
 			}
-			jp = jump::after_width;
 			if (sz.second >= 0)
 				out.width(sz.second);
 			else {
@@ -624,12 +533,8 @@ struct _put_fmtter {
 				fl |= os::left;
 				out.width(-sz.second);
 			}
-			return ti > 0 ?
-			    _put_fmt<I, N>(*this).from(t) :
-			    _put_fmt<I + 1, N>(*this).from(t);
 		}
 
-		after_width:
 		if (b == end(t)) {
 			out.setstate(os::failbit);	// incomplete spec
 			return out;
@@ -643,36 +548,27 @@ struct _put_fmtter {
 			}
 			if (*b == out.widen('*')) {
 				++b;
-				ti = _parse_position(b, end(t), fac);
-				if (_mixing_access(ti)) {
+				int ti = _parse_position(b, end(t), fac);
+				if (_bad_indexing(ti)) {
 					out.setstate(os::failbit);
 					return out;
 				}
-				if (ti > 0) {
-					jp = jump::positional_precision;
-					positional_precision:
-					if (ti - 1 != S)
-						return from<S + 1>(t, ti);
-				}
+				if (ti == 0)
+					ti = argN++;
 
-				auto sz = ti > 0 ?
-					_streamsize_or_not(_get<S>(t)) :
-					_streamsize_or_not(_get<I>(t));
+				std::pair<bool, std::streamsize> sz;
+				visit1_at(ti, [&](auto&& x)
+				    { sz = _streamsize_or_not(x); }, t);
 				if (!sz.first) {
 					out.setstate(os::failbit);
 					return out;
 				}
-				jp = jump::after_precision;
 				if (sz.second >= 0)
 					pad.precision_ = sz.second;
-				return ti > 0 ?
-				    _put_fmt<I, N>(*this).from(t) :
-				    _put_fmt<I + 1, N>(*this).from(t);
 			} else
 				pad.precision_ = _parse_int(b, end(t), fac);
 		}
 
-		after_precision:
 		if (b == end(t)) {
 			out.setstate(os::failbit);	// incomplete spec
 			return out;
@@ -760,136 +656,78 @@ struct _put_fmtter {
 			return out;
 		}
 
-		if (argN > 0) {
-			jp = jump::positional_format;
-			positional_format:
-			if (argN - 1 != S)
-				return from<S + 1>(t);
-
-		typedef typename std::remove_reference<
-			decltype(_get<S>(t))>::type type_i;
-
 		switch (tolower(out.narrow(*b, 0))) {
 		case 'p': case 's': case 'c':
-			if (std::is_integral<type_i>::value)
-				pad.precision_ = -1;
+			visit1_at(argN, [&](auto&& x) {
+				typedef std::decay_t<decltype(x)> type_i;
+				if (std::is_integral<type_i>::value)
+					pad.precision_ = -1;
+			    }, t);
 			pad.align_sign_ = false;
 			break;
 		case 'e': case 'f': case 'g':
 			if (pad.precision_ < 0)
 				pad.precision_ = 6;
 		case 'a':
-			if (std::is_integral<type_i>::value)
-				pad.precision_ = -1;
-			if (!std::is_floating_point<type_i>::value)
-				pad.align_sign_ = false;
+			visit1_at(argN, [&](auto&& x) {
+				typedef std::decay_t<decltype(x)> type_i;
+				if (std::is_integral<type_i>::value)
+					pad.precision_ = -1;
+				if (!std::is_floating_point<type_i>::value)
+					pad.align_sign_ = false;
+			    }, t);
 			break;
 		case 'd': case 'i': case 'u': case 'o': case 'x':
-			if (!std::is_integral<type_i>::value)
-				pad.align_sign_ = false;
+			visit1_at(argN, [&](auto&& x) {
+				typedef std::decay_t<decltype(x)> type_i;
+				if (!std::is_integral<type_i>::value)
+					pad.align_sign_ = false;
+			    }, t);
 		}
 		++b;
 
 		switch (sp) {
 		case spec::none: {
-			auto v = _output(out, _get<S>(t));
-			return _put_fmt<I, N>(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad), ac).from(t);
+			visit1_at(argN, [&](auto x) {
+				auto v = _output(out, x);
+				pad.align_sign_ ?
+				    v.with_aligned_sign(fl, pad) :
+				    v.with(fl, pad);
+			    }, t);
+			break;
 		}
 		case spec::to_int: {
-			auto v = _output(out, _to_int<Traits>(_get<S>(t)));
-			return _put_fmt<I, N>(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad), ac).from(t);
+			visit1_at(argN, [&](auto x) {
+				auto v = _output(out, _to_int<Traits>(x));
+				pad.align_sign_ ?
+				    v.with_aligned_sign(fl, pad) :
+				    v.with(fl, pad);
+			    }, t);
+			break;
 		}
 		case spec::to_unsigned:
-			return _put_fmt<I, N>(_output(out,
+			visit1_at(argN, [&](auto x) {
+				_output(out,
 				    fl & os::dec ?
-				    _to_unsigned(_to_int<Traits>(_get<S>(t))) :
-				    _to_unsigned(_get<S>(t))).with(
-				    fl, pad), ac).from(t);
-		case spec::to_char:
-			return _put_fmt<I, N>(_output(out,
-				    _to_char<Traits>(_get<S>(t))).with(
-				    fl, pad), ac).from(t);
-		default:
-			abort(); /* not reached */
-		}
-		}
-
-		typedef typename std::remove_reference<
-			decltype(_get<I>(t))>::type type_i;
-
-		switch (tolower(out.narrow(*b, 0))) {
-		case 'p': case 's': case 'c':
-			if (std::is_integral<type_i>::value)
-				pad.precision_ = -1;
-			pad.align_sign_ = false;
+				    _to_unsigned(_to_int<Traits>(x)) :
+				    _to_unsigned(x)).with(fl, pad);
+			    }, t);
 			break;
-		case 'e': case 'f': case 'g':
-			if (pad.precision_ < 0)
-				pad.precision_ = 6;
-		case 'a':
-			if (std::is_integral<type_i>::value)
-				pad.precision_ = -1;
-			if (!std::is_floating_point<type_i>::value)
-				pad.align_sign_ = false;
-			break;
-		case 'd': case 'i': case 'u': case 'o': case 'x':
-			if (!std::is_integral<type_i>::value)
-				pad.align_sign_ = false;
-		}
-		++b;
-
-		switch (sp) {
-		case spec::none: {
-			auto v = _output(out, _get<I>(t));
-			return _put_fmt<I + 1, N>(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad), ac).from(t);
-		}
-		case spec::to_int: {
-			auto v = _output(out, _to_int<Traits>(_get<I>(t)));
-			return _put_fmt<I + 1, N>(pad.align_sign_ ?
-			    v.with_aligned_sign(fl, pad) :
-			    v.with(fl, pad), ac).from(t);
-		}
-		case spec::to_unsigned:
-			return _put_fmt<I + 1, N>(_output(out,
-				    fl & os::dec ?
-				    _to_unsigned(_to_int<Traits>(_get<I>(t))) :
-				    _to_unsigned(_get<I>(t))).with(
-				    fl, pad), ac).from(t);
 		case spec::to_char:
-			return _put_fmt<I + 1, N>(_output(out,
-				    _to_char<Traits>(_get<I>(t))).with(
-				    fl, pad), ac).from(t);
+			visit1_at(argN, [&](auto x) {
+				_output(out,
+				    _to_char<Traits>(x)).with(fl, pad);
+			    }, t);
+			break;
 		}
-		abort(); /* shut up gcc */
+
+		return from(t);
 	}
 
 private:
-	void _ignore_zero_padding() {
-		fl &= ~os::internal;
-		pad.fill_ = out.fill();
-	}
-
-	bool _mixing_access(size_t i) {
-		if ((ac == access::positional and !i) or
-		    (ac == access::sequential and i > 0))
-			return true;
-		else
-			return false;
-	}
-
-	os&		out;
-	access		ac;
-	jump		jp = jump::nope;
-	spec		sp = spec::none;
-	fmtflags	fl;
-	padding		pad;
-	size_t		argN = 0;
+	os&	out;
+	int	argN;
+	bool	sequential;
 };
 
 template <typename CharT, typename Traits, typename... T>
@@ -899,7 +737,7 @@ inline auto operator<<(std::basic_ostream<CharT, Traits>& out,
 	_unformatted_guard<std::basic_ostream<CharT, Traits>> ok(out);
 
 	if (ok)
-		_put_fmt<0, sizeof...(T)>(out).from(t);
+		_put_fmt(out).from(t);
 	return out;
 }
 
