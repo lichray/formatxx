@@ -142,17 +142,14 @@ inline auto _to_int(T t)
 	return t;
 }
 
-template <typename T>
-inline auto _streamsize_or_not(T const&,
+template <typename T, typename U>
+inline void _streamsize_or_not(T const&, U&,
     typename std::enable_if<!std::is_convertible<T,
-    std::streamsize>::value>::type* = 0)
-	-> std::pair<bool, std::streamsize> {
-	return { false, 0 };
-}
+    std::streamsize>::value>::type* = 0) {}
 
-inline auto _streamsize_or_not(std::streamsize t)
-	-> std::pair<bool, std::streamsize> {
-	return { true, t };
+inline void _streamsize_or_not(std::streamsize t,
+    std::pair<bool, std::streamsize>& sz) {
+	sz = { true, t };
 }
 
 template <typename Iter, typename Facet>
@@ -520,7 +517,7 @@ struct _put_fmtter {
 
 			std::pair<bool, std::streamsize> sz;
 			visit1_at(ti, [&](auto&& x)
-			    { sz = _streamsize_or_not(x); }, t);
+			    { _streamsize_or_not(x, sz); }, t);
 			if (!sz.first) {
 				out.setstate(os::failbit);
 				return out;
@@ -558,7 +555,7 @@ struct _put_fmtter {
 
 				std::pair<bool, std::streamsize> sz;
 				visit1_at(ti, [&](auto&& x)
-				    { sz = _streamsize_or_not(x); }, t);
+				    { _streamsize_or_not(x, sz); }, t);
 				if (!sz.first) {
 					out.setstate(os::failbit);
 					return out;
