@@ -36,22 +36,20 @@ namespace stdex {
 
 template <typename CharT, typename... T>
 inline auto putf(CharT const *fmt, T const&... t)
-	-> _fmt_put<CharT, T...> {
+	-> _fmt_put<CharT, std::decay_t<T const>...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt), t... };
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename... T>
 inline auto putf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     T const&... t)
-	-> _fmt_put<CharT, T...> {
+	-> _fmt_put<CharT, std::decay_t<T const>...> {
 	return { fmt.data(), fmt.data() + fmt.size(), t... };
 }
 
 template <typename CharT, typename Tuple, size_t... I>
 inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
-	-> _fmt_put<CharT,
-	typename std::remove_const<
-	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
+	-> _fmt_put<CharT, std::decay_t<std::tuple_element_t<I, Tuple>>...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt),
 		get<I>(t)... };
 }
@@ -60,9 +58,7 @@ template <typename CharT, typename Traits, typename Allocator, typename Tuple,
 	size_t... I>
 inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     Tuple const& t, _indices<I...>)
-	-> _fmt_put<CharT,
-	typename std::remove_const<
-	typename std::remove_reference<decltype(get<I>(t))>::type>::type...> {
+	-> _fmt_put<CharT, std::decay_t<std::tuple_element_t<I, Tuple>>...> {
 	return { fmt.data(), fmt.data() + fmt.size(), get<I>(t)... };
 }
 
@@ -229,15 +225,11 @@ class _outputter {
 	template <typename _Stream, typename _T>
 	friend class _outputter;
 
-	typedef typename std::decay<T>::type Tp_;
-	typedef typename std::conditional<std::is_pointer<Tp_>::value,
-			typename std::add_pointer<
-			typename std::remove_const<
-			typename std::remove_pointer<Tp_>::type>::type>::type,
-		Tp_>::type RealT;
+	using RealT = std::conditional_t<std::is_pointer<T>::value,
+	    std::remove_const_t<std::remove_pointer_t<T>>*, T>;
 
 	Stream& out_;
-	T const& t_;
+	_param_type_t<T> t_;
 
 public:
 	typedef typename Stream::char_type	char_type;

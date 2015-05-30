@@ -66,6 +66,19 @@ struct _accept_narrow<char, unsigned char> : std::true_type {
 	typedef int		int_type;
 };
 
+template <typename T, typename = void>
+struct _param_type {
+	using type = T const&;
+};
+
+template <typename T>
+struct _param_type<T, std::enable_if_t<std::is_scalar<T>::value>> {
+	using type = T;
+};
+
+template <typename T>
+using _param_type_t = typename _param_type<T>::type;
+
 template <typename CharT, typename... T>
 struct _fmt_put {
 	typedef CharT const*	iterator;
@@ -87,7 +100,7 @@ struct _fmt_put {
 
 private:
 	std::pair<iterator, iterator>	iter_;
-	std::tuple<T const&...>		item_;
+	std::tuple<_param_type_t<T>...>	item_;
 };
 
 template <typename>
