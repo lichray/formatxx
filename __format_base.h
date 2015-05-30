@@ -31,6 +31,10 @@
 #include <stdexcept>
 #include <tuple>
 
+#if defined(_MSC_VER)
+#include <ciso646>
+#endif
+
 namespace stdex {
 
 using std::get;
@@ -155,26 +159,6 @@ struct _build_indices<0, I...> : _indices<I...> {};
  
 template <typename Tuple>
 using _tuple_indices = _build_indices<std::tuple_size<Tuple>::value>;
-
-template <typename Stream>
-struct _unformatted_guard {
-	_unformatted_guard(Stream& s) :
-		stream_(s), ok_(s), flags_(s.flags()), width_(s.width(0)) {}
-	~_unformatted_guard() {
-		stream_.width(width_);
-		stream_.flags(flags_);
-	}
-
-	explicit operator bool() const {
-		return bool(ok_);
-	}
-
-private:
-	Stream&				stream_;
-	typename Stream::sentry		ok_;
-	decltype(stream_.flags())	flags_;
-	decltype(stream_.width())	width_;
-};
 
 template <int Base, typename Int>
 inline int _lexical_width(Int i) {

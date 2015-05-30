@@ -144,8 +144,9 @@ inline auto _to_int(T t)
 
 template <typename T, typename U>
 inline void _streamsize_or_not(T const&, U&,
-    typename std::enable_if<!std::is_convertible<T,
-    std::streamsize>::value>::type* = 0) {}
+    typename std::enable_if<not
+	((std::is_integral<T>::value or std::is_enum<T>::value) and
+	 std::is_convertible<T, std::streamsize>::value)>::type* = 0) {}
 
 inline void _streamsize_or_not(std::streamsize t,
     std::pair<bool, std::streamsize>& sz) {
@@ -193,7 +194,10 @@ struct _padding {
 
 template <typename Stream>
 struct _padding_guard {
-	_padding_guard(Stream& s, _padding<decltype(s.fill())> pad) :
+	typedef typename Stream::char_type	char_type;
+	typedef _padding<char_type>		padding;
+
+	_padding_guard(Stream& s, padding pad) :
 		stream_(s), pad_(s) {
 		stream_.precision(pad.precision_);
 		stream_.fill(pad.fill_);
@@ -207,8 +211,8 @@ struct _padding_guard {
 	_padding_guard& operator=(_padding_guard const&) = delete;
 
 private:
-	Stream&					stream_;
-	_padding<decltype(stream_.fill())>	pad_;
+	Stream&		stream_;
+	padding		pad_;
 };
 
 template <typename Stream, typename T>
@@ -238,8 +242,8 @@ class _outputter {
 public:
 	typedef typename Stream::char_type	char_type;
 	typedef typename Stream::traits_type	traits_type;
-	typedef decltype(out_.flags())		fmtflags;
-	typedef _padding<decltype(out_.fill())>	padding;
+	typedef typename Stream::fmtflags	fmtflags;
+	typedef _padding<char_type>		padding;
 
 	_outputter(Stream& out, T const& t) : out_(out), t_(t) {}
 
@@ -304,6 +308,10 @@ private:
 		return _output__(fl, pad, t_);
 	}
 
+	Stream& _with(fmtflags fl, padding pad, identity<bool>) {
+		return _output__(fl, pad, t_);
+	}
+
 	Stream& _with(fmtflags fl, padding pad, identity<char_type *>) {
 		return _output_chars__(fl, pad);
 	}
@@ -337,7 +345,8 @@ private:
 		dummy_out.imbue(out_.getloc());
 		_output(dummy_out, t_)._output__(fl, pad, t_);
 		auto s = dummy_out.str();
-		s.insert(s.size() - w, pad.precision_ - w, out_.widen('0'));
+		s.insert(s.size() - w, size_t(pad.precision_ - w),
+		    out_.widen('0'));
 		return _output__(fl, pad, s);
 	}
 
@@ -349,7 +358,7 @@ private:
 
 		size_t n = 0;
 		auto i = t_;
-		for (; *i and n < static_cast<size_t>(pad.precision_); ++i)
+		for (; *i and n < size_t(pad.precision_); ++i)
 			++n;
 		if (*i != 0)
 			return _output__(fl, pad,
@@ -725,6 +734,26 @@ private:
 	os&	out;
 	int	argN;
 	bool	sequential;
+};
+
+template <typename Stream>
+struct _unformatted_guard {
+	_unformatted_guard(Stream& s) :
+		stream_(s), ok_(s), flags_(s.flags()), width_(s.width(0)) {}
+	~_unformatted_guard() {
+		stream_.width(width_);
+		stream_.flags(flags_);
+	}
+
+	explicit operator bool() const {
+		return bool(ok_);
+	}
+
+private:
+	Stream&				stream_;
+	typename Stream::sentry		ok_;
+	typename Stream::fmtflags	flags_;
+	std::streamsize			width_;
 };
 
 template <typename CharT, typename Traits, typename... T>

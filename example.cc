@@ -12,7 +12,7 @@ using stdex::vputf;
 using boost::format;
 
 int main() {
-	auto f = NAN;
+	double f = NAN;
 	std::string s("astring");
 	cout << putf("%x %p %#o %#X\n", -1, &f, -1, -1);
 	printf("%x %p %#o %#X\n", -1, &f, -1, -1);
