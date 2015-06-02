@@ -51,11 +51,11 @@ template <typename CharT, typename Tuple, size_t... I>
 inline auto _vputf(CharT const *fmt, Tuple const& t, _indices<I...>)
 	-> _fmt_put<CharT, std::decay_t<std::tuple_element_t<I, Tuple>>...> {
 	return { fmt, fmt + std::char_traits<CharT>::length(fmt),
-		get<I>(t)... };
+	    get<I>(t)... };
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename Tuple,
-	size_t... I>
+    size_t... I>
 inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
     Tuple const& t, _indices<I...>)
 	-> _fmt_put<CharT, std::decay_t<std::tuple_element_t<I, Tuple>>...> {
@@ -63,15 +63,13 @@ inline auto _vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
 }
 
 template <typename CharT, typename Tuple>
-inline auto vputf(CharT const *fmt, Tuple const& t)
-	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
+inline auto vputf(CharT const *fmt, Tuple const& t) {
 	return _vputf(fmt, t, _tuple_indices<Tuple>());
 }
 
 template <typename CharT, typename Traits, typename Allocator, typename Tuple>
 inline auto vputf(std::basic_string<CharT, Traits, Allocator> const& fmt,
-    Tuple const& t)
-	-> decltype(_vputf(fmt, t, _tuple_indices<Tuple>())) {
+    Tuple const& t) {
 	return _vputf(fmt, t, _tuple_indices<Tuple>());
 }
 
@@ -80,18 +78,18 @@ struct _make_unsigned_fallback;
 
 template <>
 struct _make_unsigned_fallback<bool> {
-	typedef bool type;
+	using type = bool;
 };
 
 template <typename T>
 struct _make_unsigned_fallback<T,
-	typename std::enable_if<std::is_integral<T>::value>::type> {
-	typedef typename std::make_unsigned<T>::type type;
+    std::enable_if_t<std::is_integral<T>::value>> {
+	using type = std::make_unsigned_t<T>;
 };
 
 template <typename T>
 inline T const& _to_unsigned(T const& t,
-    typename std::enable_if<!std::is_integral<T>::value>::type* = 0) {
+    std::enable_if_t<!std::is_integral<T>::value>* = 0) {
 	return t;
 }
 
@@ -103,31 +101,31 @@ inline auto _to_unsigned(T t)
 
 template <typename Traits, typename T>
 inline T const& _to_char(T const& t,
-    typename std::enable_if<!std::is_same<
-    typename Traits::int_type, T>::value>::type* = 0) {
+    std::enable_if_t<!std::is_same<
+    typename Traits::int_type, T>::value>* = 0) {
 	return t;
 }
 
 template <typename Traits, typename T>
 inline auto _to_char(T t,
-    typename std::enable_if<std::is_same<
-    typename Traits::int_type, T>::value>::type* = 0)
+    std::enable_if_t<std::is_same<
+    typename Traits::int_type, T>::value>* = 0)
 	-> typename Traits::char_type {
 	return Traits::to_char_type(t);
 }
 
 template <typename Traits, typename T>
 inline T const& _to_int(T const& t,
-    typename std::enable_if<!std::is_same<
+    std::enable_if_t<!std::is_same<
     typename Traits::char_type, T>::value and
-    not _accept_narrow<typename Traits::char_type, T>::value>::type* = 0) {
+    not _accept_narrow<typename Traits::char_type, T>::value>* = 0) {
 	return t;
 }
 
 template <typename Traits, typename T>
 inline auto _to_int(T t,
-    typename std::enable_if<std::is_same<
-    typename Traits::char_type, T>::value>::type* = 0)
+    std::enable_if_t<std::is_same<
+    typename Traits::char_type, T>::value>* = 0)
 	-> typename Traits::int_type {
 	return Traits::to_int_type(t);
 }
@@ -140,9 +138,9 @@ inline auto _to_int(T t)
 
 template <typename T, typename U>
 inline void _streamsize_or_not(T const&, U&,
-    typename std::enable_if<not
-	((std::is_integral<T>::value or std::is_enum<T>::value) and
-	 std::is_convertible<T, std::streamsize>::value)>::type* = 0) {}
+    std::enable_if_t<not
+    ((std::is_integral<T>::value or std::is_enum<T>::value) and
+     std::is_convertible<T, std::streamsize>::value)>* = 0) {}
 
 inline void _streamsize_or_not(std::streamsize t,
     std::pair<bool, std::streamsize>& sz) {
@@ -172,7 +170,7 @@ inline int _parse_position(Iter& b, Iter& e, Facet const& fac) {
 }
 
 template <typename Stream>
-inline auto _flags_for_output(Stream const& out) -> decltype(out.flags()) {
+inline auto _flags_for_output(Stream const& out) {
 	using os = Stream;
 	return out.flags() & os::unitbuf;
 }
@@ -245,15 +243,13 @@ public:
 
 	template <typename _U = RealT>
 	auto with_aligned_sign(fmtflags fl, padding pad)
-		-> typename std::enable_if<
-		!std::is_arithmetic<_U>::value, Stream&>::type {
+		-> std::enable_if_t<!std::is_arithmetic<_U>::value, Stream&> {
 		return _with(fl, pad, identity<RealT>());
 	}
 
 	template <typename _U = RealT>
 	auto with_aligned_sign(fmtflags fl, padding pad)
-		-> typename std::enable_if<
-		std::is_arithmetic<_U>::value, Stream&>::type {
+		-> std::enable_if_t<std::is_arithmetic<_U>::value, Stream&> {
 		using os = std::basic_ostringstream<char_type, traits_type>;
 
 		os dummy_out;
@@ -275,15 +271,14 @@ public:
 private:
 	template <typename _T>
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
-	    typename std::enable_if<!std::is_arithmetic<_T>::value or
-	    _accept_narrow<traits_type, _T>::value>::type* = 0) {
+	    std::enable_if_t<!std::is_arithmetic<_T>::value or
+	    _accept_narrow<traits_type, _T>::value>* = 0) {
 		return _output__(fl, pad, t_);
 	}
 
 	template <typename _T>
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
-	    typename std::enable_if<std::is_floating_point<_T>::value
-	    >::type* = 0) {
+	    std::enable_if_t<std::is_floating_point<_T>::value>* = 0) {
 		if (fl & Stream::internal and !std::isfinite(t_))
 			pad.fill_ = out_.fill();
 		return _output__(fl, pad, t_);
@@ -291,8 +286,8 @@ private:
 
 	template <typename _T>
 	Stream& _with(fmtflags fl, padding pad, identity<_T>,
-	    typename std::enable_if<std::is_integral<_T>::value and
-	    not _accept_narrow<traits_type, _T>::value>::type* = 0) {
+	    std::enable_if_t<std::is_integral<_T>::value and
+	    not _accept_narrow<traits_type, _T>::value>* = 0) {
 		return _output_int__(fl, pad);
 	}
 
@@ -343,7 +338,7 @@ private:
 	}
 
 	Stream& _output_chars__(fmtflags fl, padding pad) {
-		typedef typename std::remove_pointer<RealT>::type _CharT;
+		using _CharT = std::remove_pointer_t<RealT>;
 
 		if (pad.precision_ < 0)
 			return _output__(fl, pad, t_);
@@ -372,8 +367,7 @@ template <typename CharT, typename Traits>
 struct _put_fmtter;
 
 template <typename CharT, typename Traits, typename... Args>
-inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args)
-	-> _put_fmtter<CharT, Traits> {
+inline auto _put_fmt(std::basic_ostream<CharT, Traits>& out, Args... args) {
 	return _put_fmtter<CharT, Traits>(out, args...);
 }
 
@@ -685,7 +679,7 @@ struct _put_fmtter {
 		++b;
 
 		switch (sp) {
-		case spec::none: {
+		case spec::none:
 			visit1_at(argN, [&](auto x) {
 				auto v = _output(out, x);
 				pad.align_sign_ ?
@@ -693,8 +687,7 @@ struct _put_fmtter {
 				    v.with(fl, pad);
 			    }, t);
 			break;
-		}
-		case spec::to_int: {
+		case spec::to_int:
 			visit1_at(argN, [&](auto x) {
 				auto v = _output(out, _to_int<Traits>(x));
 				pad.align_sign_ ?
@@ -702,7 +695,6 @@ struct _put_fmtter {
 				    v.with(fl, pad);
 			    }, t);
 			break;
-		}
 		case spec::to_unsigned:
 			visit1_at(argN, [&](auto x) {
 				_output(out,
